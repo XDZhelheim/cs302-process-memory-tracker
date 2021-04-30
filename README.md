@@ -1,4 +1,4 @@
-# Project Design for CS302 OS Project 2
+# CS302 Project 2 Design Document
 
 Our choice is [proj19-process-memory-tracker](https://github.com/oscomp/proj19-process-memory-tracker).
 
@@ -10,7 +10,7 @@ Our choice is [proj19-process-memory-tracker](https://github.com/oscomp/proj19-p
 
     Computer memory operates at a high speed compared to storage that is slower but offers higher capacities. If needed, contents of the computer memory can be transferred to storage; a common way of doing this is through a memory management technique called virtual memory.
 
-2. What is memory leak and hazard of that?
+2. What is memory leak and its hazard?
 
     In computer science, a memory leak is a type of resource leak that occurs when a computer program incorrectly manages memory allocations in a way that memory which is no longer needed is not released. A memory leak may also happen when an object is stored in memory but cannot be accessed by the running code. A memory leak has symptoms similar to a number of other problems and generally can only be diagnosed by a programmer with access to the programs' source code.
 
@@ -21,8 +21,8 @@ Our choice is [proj19-process-memory-tracker](https://github.com/oscomp/proj19-p
 The project is to show real time statistics of process memory usage and detect memory leak. This project is based on `C/C++`, targeting on developing a tool on Linux platform, which can display the memory usage of the process you want to observe and the possible memory leakage problems in real time. The specific requirements are as follows:
 
 - Real time statistics of the memory usage of each process and thread in the system
-
-- Detect the memory leakage in a `C/C++` program, including: memory, file handle leakage, real-time display or output the detection to the specified file
+- Detect the allocation and release of memory and file handles of a `C/C++` program
+- Detect the memory leakage in a `C/C++` program
 
 ## Implementation
 
@@ -43,9 +43,9 @@ References:
 
 Since the whole project contains many steps, we will split them into several parts:
 
-- Learn about how `Ubuntu` allocates memory
+- Learn about how `Linux` allocates memory
 
-    For that `Ubuntu` map its memory to `/proc/`, we need to know that stucture of each process and where it place processes' informations.
+    For that `Linux` map its memory to `/proc/`, we need to know that stucture of each process and where it place processes' information.
 
 - Show real time statistics of system processes and threads' memory usage
 
@@ -59,7 +59,7 @@ Since the whole project contains many steps, we will split them into several par
 
 - Detect memory leak
 
-    Statistics process memory allocation and release, confirm whether there is a leak, if there is a leak, point out the suspicious code
+    Combine the infomation we collected to confirm whether there is a leak. If there is a leak, point out the suspicious code.
 
 - User Interface
 
