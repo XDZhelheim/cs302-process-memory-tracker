@@ -26,7 +26,7 @@ The project is to show real time statistics of process memory usage and detect m
 
 ## Implementation
 
-The project is based on `C/C++`, which will be test in `Ubuntu`. Since in `Ubuntu`, memory is mapped to `/proc/` directory, thus, we can read memory informations from that.
+The project is based on `C/C++`, which will be test in `Ubuntu`. Since in `Linux`, memory is mapped to `/proc/` directory, thus, we can read memory informations from that.
 
 First, we will design an application to monitor the memory usage of processes, at least a CLI version. If have time, we will create GUI.
 
