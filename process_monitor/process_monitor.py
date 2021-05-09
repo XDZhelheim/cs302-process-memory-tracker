@@ -1,5 +1,5 @@
 import os
-import sys
+import time
 
 proc_path="/proc"
 
@@ -16,6 +16,9 @@ class Unbuffered(object):
    def flush(self):
       self.stream.flush()
 
+def clear():
+    os.system("clear")
+
 def get_RSS(pid: int) -> int:
     statm_path=os.path.join(proc_path, str(pid), "statm")
     with open(statm_path, "r") as statm:
@@ -31,7 +34,7 @@ def get_process_name(pid: int) -> str:
     return name
 
 def show_mem_usage():
-    print("PID\tName\t\tMemory (KiB)")
+    print("PID\tMemory (KiB)\tName")
 
     for pid in os.listdir(proc_path):
         if not pid.isdigit():
@@ -49,4 +52,7 @@ if __name__ == "__main__":
     # sys.stdout=Unbuffered(sys.stdout)
     # sys.stderr=Unbuffered(sys.stderr)
     
-    show_mem_usage()
+    while True:
+        show_mem_usage()
+        time.sleep(1)
+        clear()
