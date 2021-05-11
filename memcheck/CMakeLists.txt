@@ -1,6 +1,6 @@
 # Project
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(abc VERSION 1.0 LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.18)
+project(memory_check)
 set(COMMON_FLAGS "-funwind-tables -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual \
                   -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wundef \
                   -Wuninitialized ")
@@ -13,9 +13,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Library
-add_library(abc SHARED src/abc.c)
-target_compile_features(abc PRIVATE cxx_variadic_templates)
-target_link_libraries(abc pthread dl)
+add_library(redirect SHARED src/redirect.c src/logger.cpp)
+target_compile_features(redirect PRIVATE cxx_variadic_templates)
+target_link_libraries(redirect dl)
+
+configure_file(src/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
 
 add_executable(test src/test.c)
 add_executable(tt src/tt.cpp)
