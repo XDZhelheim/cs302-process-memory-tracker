@@ -35,15 +35,21 @@ def get_RSS(pid: int) -> int:
     ```
     """
     statm_path=os.path.join(proc_path, str(pid), "statm")
-    with open(statm_path, "r") as statm:
-        pages=int(statm.readline().split()[1]) # page numbers of RSS
+    try:
+        with open(statm_path, "r") as statm:
+            pages=int(statm.readline().split()[1]) # page numbers of RSS
+    except FileNotFoundError:
+        pass
 
     return pages*PAGE_SIZE # RSS (KiB) resident set size
 
 def get_process_name(pid: int) -> str:
     status_path=os.path.join(proc_path, str(pid), "status")
-    with open(status_path, "r") as status:
-        name=status.readline().split()[1] # first line, the format is "Name: xxx"
+    try:
+        with open(status_path, "r") as status:
+            name=status.readline().split()[1] # first line, the format is "Name: xxx"
+    except FileNotFoundError:
+        pass
 
     return name
 
