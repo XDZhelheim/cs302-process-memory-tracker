@@ -120,7 +120,21 @@ Divided into two steps:
 
    ![](./images/c_redirect.png)
 
-2. Implement a library which is loaded with `LD_PRELOAD` variable, and write a script for it.
+2. Implement a library which can be loaded with `LD_PRELOAD` variable, and write a script for it. This method does not need to edit source file, and can be used on any `C/C++` program.
+
+##### Design Plan & TODO List (by 5.11)
+
+Base requirements:
+
+* [x] Implement the library in step 2.
+* [x] Generate a script supporting running with the library.
+* [x] Show memory operation and memory leak through `CLI`.
+
+Improvements:
+
+* [x] Show stack trace of memory operations which causes memory leak.
+* [ ] Generate a `CLI` with more detail information like `pid`, 
+* [ ] Implement `GUI` for this task, using tools like `Qt`.
 
 ##### References
 
