@@ -19,7 +19,13 @@ target_link_libraries(redirect dl)
 
 configure_file(src/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
 
-add_executable(test src/test.c)
-add_executable(tt src/tt.cpp)
+# test
+add_executable(c_test src/test.c)
+add_executable(cpp_test src/tt.cpp)
+
+# reference
+add_executable(c_redirect ref/mem.c ref/c_test.c)
+add_executable(cpp_redirect ref/op.cpp)
+add_executable(backtrace ref/back.c)
 
 # -rdynamic

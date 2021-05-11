@@ -7,10 +7,14 @@
 #define RELEASE 0
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
+    void logger_start(void);
 
-void logger(int type, void *ptr, size_t size);
+    void logger_record(int type, void *ptr, size_t size);
+
+    void logger_finish(void);
 
 #ifdef __cplusplus
 }

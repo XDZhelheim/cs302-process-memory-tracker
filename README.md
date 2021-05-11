@@ -98,19 +98,31 @@ GUI version:
 
 ![](./images/proc_monitor_gui_demo.png)
 
-### Task2
+### Task 2 & Task 3
 
-// TODO：王宇辰
+##### Requirement
 
-Second, implement a tool to collect the information of memory allocation and release of a `C/C++` program.
+Implement a tool to collect the information of memory allocation and release of a `C/C++` program, and then, combine all the information to detect memory leak.
 
-### Task3
+##### Goal
 
-// TODO：王宇辰
+Divided into two steps:
 
-Finally, combine all the information to detect memory leak.
+1. Implement `.h` file which redirect the memory functions and `.c` to implement these functions. This is based on editing source code. Memory functions are `malloc`, `calloc`, `realloc`, `free` in `C` and `operator new`, `operator new[]`, `operator delete`, `operator delete[]` in `C++` which are based on `C` functions.
 
-References:
+   ##### Demo (5.11)
+
+   `C++` redirect:
+
+   ![](./images/cpp_redirect.png)
+
+   `C` redirect:
+
+   ![](./images/c_redirect.png)
+
+2. Implement a library which is loaded with `LD_PRELOAD` variable, and write a script for it.
+
+##### References
 
 - [heapusage: A tool for finding memory leaks in Linux](https://github.com/d99kris/heapusage)
 

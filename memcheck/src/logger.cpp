@@ -1,13 +1,29 @@
 #include "logger.h"
+#include <map>
 
-void logger(int type, void *ptr, size_t size)
+bool enabled = false;
+
+void logger_start(void)
 {
-    if (type)
+    enabled = true;
+}
+
+void logger_record(int type, void *ptr, size_t size)
+{
+    if (enabled)
     {
-        fprintf(stderr, "Allocate memory at %16p, size %ld\n", ptr, size);
+        if (type)
+        {
+            fprintf(stderr, "Allocate memory at %p, size %ld\n", ptr, size);
+        }
+        else
+        {
+            fprintf(stderr, "Release  memory at %p\n", ptr);
+        }
     }
-    else
-    {
-        fprintf(stderr, "Release  memory at %16p\n", ptr);
-    }
+}
+
+void logger_finish(void)
+{
+    enabled = false;
 }

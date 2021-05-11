@@ -4,6 +4,7 @@ int main()
     // delete  a;
     a[99999] = 100;
     // delete[] a;
+    delete[] a;
 }
 
 // LD_PRELOAD=`pwd`/libredirect.so ./tt
