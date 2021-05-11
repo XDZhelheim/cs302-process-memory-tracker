@@ -74,7 +74,7 @@ void logger_finish(void)
         {
             memnode *node = p.second;
             fprintf(stderr, "%02d. at %p: %ld block(s) with size %ld\n", ++index, node->get_ptr(), node->get_block(), node->get_size());
-            for (int i = 2; i < node->get_trace_size(); i++)
+            for (int i = 1; i < node->get_trace_size(); i++)
             {
                 fprintf(stderr, "        at %p: %s\n", node->get_back_trace()[i], node->get_symbols()[i]);
             }
