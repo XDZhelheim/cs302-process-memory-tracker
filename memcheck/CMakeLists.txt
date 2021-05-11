@@ -13,19 +13,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Library
-add_library(redirect SHARED src/redirect.c src/logger.cpp)
+add_library(redirect SHARED src/redirect.c src/logger.cpp src/memnode.cpp)
 target_compile_features(redirect PRIVATE cxx_variadic_templates)
-target_link_libraries(redirect dl)
+target_link_libraries(redirect pthread)
 
-configure_file(src/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
+# configuration
+configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
 
 # test
-add_executable(c_test src/test.c)
-add_executable(cpp_test src/tt.cpp)
+add_executable(test_c test/test.c)
+add_executable(test_cpp test/test.cpp)
 
 # reference
-add_executable(c_redirect ref/mem.c ref/c_test.c)
-add_executable(cpp_redirect ref/op.cpp)
+add_executable(redirect_c ref/mem.c ref/c_test.c)
+add_executable(redirect_cpp ref/op.cpp)
 add_executable(backtrace ref/back.c)
 
 # -rdynamic

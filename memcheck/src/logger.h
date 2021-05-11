@@ -12,7 +12,7 @@ extern "C"
 #endif
     void logger_start(void);
 
-    void logger_record(int type, void *ptr, size_t size);
+    void logger_record(int type, void *ptr, size_t size, size_t block);
 
     void logger_finish(void);
 

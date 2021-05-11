@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <execinfo.h>
-#include <inttypes.h>
 
 int main(void)
 {
