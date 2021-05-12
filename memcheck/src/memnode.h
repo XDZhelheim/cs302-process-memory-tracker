@@ -2,8 +2,7 @@
 #define MEMNODE_H
 
 #include <stddef.h>
-
-#define MAX_STACK_TRACE 20
+#include "trace.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -12,9 +11,7 @@ extern "C"
     class memnode
     {
     private:
-        void *back_trace[MAX_STACK_TRACE];
-        char **symbols;
-        int trace_size;
+        trace *tr;
         void *ptr;
         size_t size;
         size_t block;
@@ -22,13 +19,7 @@ extern "C"
     public:
         memnode(void *p, size_t s, size_t b);
 
-        void set_back_trace(char **s, int t);
-
-        void **get_back_trace();
-
-        char **get_symbols();
-
-        int get_trace_size();
+        trace *get_trace();
 
         void *get_ptr();
 

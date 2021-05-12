@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Library
-add_library(redirect SHARED src/redirect.c src/logger.cpp src/memnode.cpp)
+add_library(redirect SHARED src/redirect.c src/logger.cpp src/trace.cpp src/memnode.cpp src/fdnode.cpp)
 target_compile_features(redirect PRIVATE cxx_variadic_templates)
 target_link_libraries(redirect pthread)
 
