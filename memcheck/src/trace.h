@@ -9,6 +9,7 @@
 extern "C"
 {
 #endif
+    char *get_local_time(void);
 
     class trace
     {
@@ -16,6 +17,7 @@ extern "C"
         void *back_trace[MAX_STACK_TRACE];
         char **symbols;
         int trace_size;
+        char *trace_time;
 
     public:
         trace();
@@ -25,6 +27,8 @@ extern "C"
         char **get_symbols();
 
         int get_trace_size();
+
+        char *get_trace_time();
 
         ~trace();
     };

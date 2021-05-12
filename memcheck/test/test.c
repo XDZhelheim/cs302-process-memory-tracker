@@ -7,7 +7,7 @@ int main(void)
 {
     free(malloc(100));
     malloc(200);
-    fclose(fopen("./Makefile", "r"));
-    open("./test.c", O_RDONLY);
+    fopen("./Makefile", "r");
+    open("./Makefile", O_RDONLY);
     return 0;
 }

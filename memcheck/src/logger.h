@@ -10,6 +10,8 @@
 extern "C"
 {
 #endif
+    char *get_local_time(void);
+
     void logger_enable(int en);
 
     void logger_start(void);
