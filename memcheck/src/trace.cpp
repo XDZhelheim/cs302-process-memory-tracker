@@ -53,11 +53,6 @@ char *trace::get_trace_time()
 
 trace::~trace()
 {
-    for (int i = 0; i < trace_size; i++)
-    {
-        delete[] symbols[i];
-        delete[](unsigned long *) back_trace[i];
-    }
     delete[] symbols;
     delete[] trace_time;
 }

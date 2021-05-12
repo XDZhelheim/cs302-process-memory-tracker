@@ -14,16 +14,13 @@ extern "C"
     {
     private:
         trace *tr;
-        FILE *file;
         const char *name;
         int fd;
 
     public:
-        fdnode(FILE *f, const char *n, int _fd);
+        fdnode(const char *n, int _fd);
 
         trace *get_trace();
-
-        FILE *get_file();
 
         const char *get_name();
 

@@ -13,9 +13,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Library
-add_library(redirect SHARED src/redirect.c src/logger.cpp src/trace.cpp src/memnode.cpp src/fdnode.cpp)
-target_compile_features(redirect PRIVATE cxx_variadic_templates)
-target_link_libraries(redirect pthread)
+add_library(memory_check SHARED 
+    src/main_redirect.c src/main_log.c src/trace.cpp 
+    src/memory_redirect.c src/memory_log.cpp src/memory_node.cpp 
+    src/file_descriptor_redirect.c src/file_descriptor_log.cpp src/file_descriptor_node.cpp 
+    src/file_handler_redirect.c src/file_handler_log.cpp src/file_handler_node.cpp)
+
+target_compile_features(memory_check PRIVATE cxx_variadic_templates)
+# target_link_libraries(redirect pthread)
 
 # configuration
 configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)

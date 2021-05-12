@@ -1,9 +1,8 @@
-#include "fdnode.h"
+#include "file_descriptor_node.h"
 
-fdnode::fdnode(FILE *f, const char *n, int _fd)
+fdnode::fdnode(const char *n, int _fd)
 {
     tr = new trace;
-    file = f;
     name = n;
     fd = _fd;
 }
@@ -11,11 +10,6 @@ fdnode::fdnode(FILE *f, const char *n, int _fd)
 trace *fdnode::get_trace()
 {
     return tr;
-}
-
-FILE *fdnode::get_file()
-{
-    return file;
 }
 
 const char *fdnode::get_name()

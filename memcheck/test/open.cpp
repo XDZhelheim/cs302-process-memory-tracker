@@ -1,15 +1,10 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <stdio.h>
+#include <iostream>
 #include <map>
 
 using namespace std;
 
 int main()
 {
-    map<int, int> a;
-    a.erase(10);
-    a.erase(10);
-    a.erase(10);
+    map<int, int *> a;
+    cout << a[10] <<endl;
 }
