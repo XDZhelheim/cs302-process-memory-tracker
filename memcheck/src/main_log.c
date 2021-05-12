@@ -22,6 +22,7 @@ void log_start(void)
     file_handler_log_init();
     file_descriptor_log_init();
     
+    fprintf(stderr, "%s Program Designed by MasterWanna\n", get_local_time());
     fprintf(stderr, "%s Program started pid = %d\n", get_local_time(), getpid());
     started = true;
 }
