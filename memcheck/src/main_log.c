@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <unistd.h>
 #include "main_log.h"
 
 static bool started = false;
@@ -17,7 +18,11 @@ void log_enable(int en)
 
 void log_start(void)
 {
-    fprintf(stderr, "%s Program started\n", get_local_time());
+    memory_log_init();
+    file_handler_log_init();
+    file_descriptor_log_init();
+    
+    fprintf(stderr, "%s Program started pid = %d\n", get_local_time(), getpid());
     started = true;
 }
 

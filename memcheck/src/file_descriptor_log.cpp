@@ -7,7 +7,15 @@ using std::pair;
 
 #include <unistd.h>
 
-static map<int, file_descriptor_node *> fd_map;
+static map<int, file_descriptor_node *> file_descriptor_map;
+static int file_descriptor_allocate;
+static int file_descriptor_release;
+
+void file_descriptor_log_init(void)
+{
+    file_descriptor_allocate = 0;
+    file_descriptor_release = 0;
+}
 
 void file_descriptor_log_record(int type, int fd, const char *filename)
 {
@@ -17,16 +25,18 @@ void file_descriptor_log_record(int type, int fd, const char *filename)
 
         if (type)
         {
-            file_descriptor_node *&node = fd_map[fd];
+            file_descriptor_node *&node = file_descriptor_map[fd];
             node = new file_descriptor_node(filename, fd);
 
-            fprintf(stderr, "%s FILE open  fd %02d name %s\n", node->get_trace()->get_trace_time(), fd, filename);
+            fprintf(stderr, "%s File open  fd %02d name %s\n", node->get_trace()->get_trace_time(), fd, filename);
+            file_descriptor_allocate++;
         }
         else
         {
-            fprintf(stderr, "%s FILE close fd %02d\n", get_local_time(), fd);
-
-            fd_map.erase(fd);
+            file_descriptor_map.erase(fd);
+            
+            fprintf(stderr, "%s File close fd %02d\n", get_local_time(), fd);
+            file_descriptor_release++;
         }
 
         log_enable(true);
@@ -35,15 +45,16 @@ void file_descriptor_log_record(int type, int fd, const char *filename)
 
 void file_descriptor_log_finish(void)
 {
-    int all = fd_map.size();
     fprintf(stderr, "--------------------------------------File Descriptor-------------------------------------\n");
     fprintf(stderr, "Summary:\n");
-    fprintf(stderr, "    %d node(s) of file not released.\n", all);
-    if (all)
+    fprintf(stderr, "    %d node(s) of file descriptor allocated.\n", file_descriptor_allocate);
+    fprintf(stderr, "    %d node(s) of file descriptor released.\n", file_descriptor_release);
+    fprintf(stderr, "    %d node(s) of file descriptor not released.\n", file_descriptor_allocate - file_descriptor_release);
+    if (file_descriptor_allocate - file_descriptor_release)
     {
         fprintf(stderr, "  --------------------------------------List start--------------------------------------\n\n");
         int index = 0;
-        for (pair<int, file_descriptor_node *> p : fd_map)
+        for (pair<int, file_descriptor_node *> p : file_descriptor_map)
         {
             file_descriptor_node *node = p.second;
             trace *tr = node->get_trace();
@@ -62,7 +73,7 @@ void file_descriptor_log_finish(void)
     }
     else
     {
-        fprintf(stderr, "\nNo file handler leak!\n");
+        fprintf(stderr, "\nNo file descriptor leak!\n");
     }
     fprintf(stderr, "-----------------------------------File Descriptor Ended----------------------------------\n\n");
 }

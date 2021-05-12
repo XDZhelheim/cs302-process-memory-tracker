@@ -7,7 +7,15 @@ using std::pair;
 
 #include <unistd.h>
 
-static map<FILE *, file_handler_node *> fh_map;
+static map<FILE *, file_handler_node *> file_handler_map;
+static int file_handler_allocate;
+static int file_handler_release;
+
+void file_handler_log_init(void)
+{
+    file_handler_allocate = 0;
+    file_handler_release = 0;
+}
 
 void file_handler_log_record(int type, FILE *f, const char *filename)
 {
@@ -17,16 +25,18 @@ void file_handler_log_record(int type, FILE *f, const char *filename)
 
         if (type)
         {
-            file_handler_node *&node = fh_map[f];
+            file_handler_node *&node = file_handler_map[f];
             node = new file_handler_node(filename, f);
 
-            fprintf(stderr, "%s FILE open  at %p name %s\n", node->get_trace()->get_trace_time(), (void *)f, filename);
+            fprintf(stderr, "%s File fopen  at %p name %s\n", node->get_trace()->get_trace_time(), (void *)f, filename);
+            file_handler_allocate++;
         }
         else
         {
-            fprintf(stderr, "%s FILE close at %p\n", get_local_time(), (void *)f);
+            file_handler_map.erase(f);
 
-            fh_map.erase(f);
+            fprintf(stderr, "%s File fclose at %p\n", get_local_time(), (void *)f);
+            file_handler_release++;
         }
 
         log_enable(true);
@@ -35,15 +45,16 @@ void file_handler_log_record(int type, FILE *f, const char *filename)
 
 void file_handler_log_finish(void)
 {
-    int all = fh_map.size();
     fprintf(stderr, "---------------------------------------File Handler---------------------------------------\n");
     fprintf(stderr, "Summary:\n");
-    fprintf(stderr, "    %d node(s) of file not released.\n", all);
-    if (all)
+    fprintf(stderr, "    %d node(s) of file handler allocated.\n", file_handler_allocate);
+    fprintf(stderr, "    %d node(s) of file handler released.\n", file_handler_release);
+    fprintf(stderr, "    %d node(s) of file handler not released.\n", file_handler_allocate - file_handler_release);
+    if (file_handler_allocate - file_handler_release)
     {
         fprintf(stderr, "  --------------------------------------List start--------------------------------------\n\n");
         int index = 0;
-        for (pair<FILE *, file_handler_node *> p : fh_map)
+        for (pair<FILE *, file_handler_node *> p : file_handler_map)
         {
             file_handler_node *node = p.second;
             trace *tr = node->get_trace();

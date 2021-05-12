@@ -21,13 +21,19 @@ extern "C"
 
     void log_finish(void);
 
+    void memory_log_init(void);
+
     void memory_log_record(int type, void *ptr, size_t size, size_t block);
 
     void memory_log_finish(void);
 
+    void file_handler_log_init(void);
+
     void file_handler_log_record(int type, FILE *f, const char *filename);
 
     void file_handler_log_finish(void);
+    
+    void file_descriptor_log_init(void);
 
     void file_descriptor_log_record(int type, int fd, const char *filename);
 
