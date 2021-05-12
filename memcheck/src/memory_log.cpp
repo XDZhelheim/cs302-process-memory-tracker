@@ -5,7 +5,7 @@
 using std::map;
 using std::pair;
 
-static map<void *, memnode *> mem_map;
+static map<void *, memory_node *> mem_map;
 
 void memory_log_record(int type, void *ptr, size_t size, size_t block)
 {
@@ -15,7 +15,7 @@ void memory_log_record(int type, void *ptr, size_t size, size_t block)
 
         if (type)
         {
-            memnode *node = new memnode(ptr, size, block);
+            memory_node *node = new memory_node(ptr, size, block);
 
             if (!node->valid_memory_allocation())
             {
@@ -56,9 +56,9 @@ void memory_log_finish(void)
     {
         fprintf(stderr, "  --------------------------------------List start--------------------------------------\n\n");
         int index = 0;
-        for (pair<void *, memnode *> p : mem_map)
+        for (pair<void *, memory_node *> p : mem_map)
         {
-            memnode *node = p.second;
+            memory_node *node = p.second;
             trace *tr = node->get_trace();
 
             fprintf(stderr, "  %02d. Memory at %p allocated at %s : %ld block(s) with size %ld\n", ++index, node->get_ptr(), node->get_trace()->get_trace_time(), node->get_block(), node->get_size());

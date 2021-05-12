@@ -1,28 +1,28 @@
 #include "file_descriptor_node.h"
 
-fdnode::fdnode(const char *n, int _fd)
+file_descriptor_node::file_descriptor_node(const char *n, int _fd)
 {
     tr = new trace;
     name = n;
     fd = _fd;
 }
 
-trace *fdnode::get_trace()
+trace *file_descriptor_node::get_trace()
 {
     return tr;
 }
 
-const char *fdnode::get_name()
+const char *file_descriptor_node::get_name()
 {
     return name;
 }
 
-int fdnode::get_fd()
+int file_descriptor_node::get_fd()
 {
     return fd;
 }
 
-fdnode::~fdnode()
+file_descriptor_node::~file_descriptor_node()
 {
     delete tr;
 }

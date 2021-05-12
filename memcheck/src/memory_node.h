@@ -1,5 +1,5 @@
-#ifndef MEMNODE_H
-#define MEMNODE_H
+#ifndef MEMORY_NODE_H
+#define MEMORY_NODE_H
 
 #include <stddef.h>
 #include "trace.h"
@@ -10,7 +10,7 @@ extern "C"
 #endif
     bool contains(const char *str, const char *s);
 
-    class memnode
+    class memory_node
     {
     private:
         trace *tr;
@@ -19,7 +19,7 @@ extern "C"
         size_t block;
 
     public:
-        memnode(void *p, size_t s, size_t b);
+        memory_node(void *p, size_t s, size_t b);
 
         bool valid_memory_allocation();
 
@@ -31,7 +31,7 @@ extern "C"
 
         size_t get_block();
 
-        ~memnode();
+        ~memory_node();
     };
 #ifdef __cplusplus
 }

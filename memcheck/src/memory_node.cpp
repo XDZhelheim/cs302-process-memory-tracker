@@ -33,7 +33,7 @@ bool contains(const char *str, const char *s)
     return false;
 }
 
-memnode::memnode(void *p, size_t s, size_t b)
+memory_node::memory_node(void *p, size_t s, size_t b)
 {
     tr = new trace;
     ptr = p;
@@ -41,7 +41,7 @@ memnode::memnode(void *p, size_t s, size_t b)
     block = b;
 }
 
-bool memnode::valid_memory_allocation()
+bool memory_node::valid_memory_allocation()
 {
     for (int i = 0; i < tr->get_trace_size(); i++)
     {
@@ -56,27 +56,27 @@ bool memnode::valid_memory_allocation()
     return true;
 }
 
-trace *memnode::get_trace()
+trace *memory_node::get_trace()
 {
     return tr;
 }
 
-void *memnode::get_ptr()
+void *memory_node::get_ptr()
 {
     return ptr;
 }
 
-size_t memnode::get_size()
+size_t memory_node::get_size()
 {
     return size;
 }
 
-size_t memnode::get_block()
+size_t memory_node::get_block()
 {
     return block;
 }
 
-memnode::~memnode()
+memory_node::~memory_node()
 {
     delete tr;
 }

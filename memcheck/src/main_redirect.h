@@ -1,5 +1,5 @@
-#ifndef REDIRECT_H
-#define REDIRECT_H
+#ifndef MAIN_REDIRECT_H
+#define MAIN_REDIRECT_H
 
 #include "main_log.h"
 

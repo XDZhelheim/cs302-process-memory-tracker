@@ -1,5 +1,5 @@
-#ifndef FHNODE_H
-#define FHNODE_H
+#ifndef FILE_HANDLER_NODE_H
+#define FILE_HANDLER_NODE_H
 
 #include <stdio.h>
 
@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-    class fhnode
+    class file_handler_node
     {
     private:
         trace *tr;
@@ -18,7 +18,7 @@ extern "C"
         FILE *fh;
 
     public:
-        fhnode(const char *n, FILE *fh);
+        file_handler_node(const char *n, FILE *fh);
 
         trace *get_trace();
 
@@ -26,7 +26,7 @@ extern "C"
 
         FILE *get_fh();
 
-        ~fhnode();
+        ~file_handler_node();
     };
 
 #ifdef __cplusplus

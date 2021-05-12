@@ -7,7 +7,7 @@ using std::pair;
 
 #include <unistd.h>
 
-static map<int, fdnode *> fd_map;
+static map<int, file_descriptor_node *> fd_map;
 
 void file_descriptor_log_record(int type, int fd, const char *filename)
 {
@@ -17,8 +17,8 @@ void file_descriptor_log_record(int type, int fd, const char *filename)
 
         if (type)
         {
-            fdnode *&node = fd_map[fd];
-            node = new fdnode(filename, fd);
+            file_descriptor_node *&node = fd_map[fd];
+            node = new file_descriptor_node(filename, fd);
 
             fprintf(stderr, "%s FILE open  fd %02d name %s\n", node->get_trace()->get_trace_time(), fd, filename);
         }
@@ -43,9 +43,9 @@ void file_descriptor_log_finish(void)
     {
         fprintf(stderr, "  --------------------------------------List start--------------------------------------\n\n");
         int index = 0;
-        for (pair<int, fdnode *> p : fd_map)
+        for (pair<int, file_descriptor_node *> p : fd_map)
         {
-            fdnode *node = p.second;
+            file_descriptor_node *node = p.second;
             trace *tr = node->get_trace();
 
             fprintf(stderr, "  %02d. File fd %02d opened at %s : %s\n", ++index, node->get_fd(), node->get_trace()->get_trace_time(), node->get_name());

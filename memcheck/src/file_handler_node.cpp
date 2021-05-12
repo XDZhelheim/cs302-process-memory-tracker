@@ -1,28 +1,28 @@
 #include "file_handler_node.h"
 
-fhnode::fhnode(const char *n, FILE *_fh)
+file_handler_node::file_handler_node(const char *n, FILE *_fh)
 {
     tr = new trace;
     name = n;
     fh = _fh;
 }
 
-trace *fhnode::get_trace()
+trace *file_handler_node::get_trace()
 {
     return tr;
 }
 
-const char *fhnode::get_name()
+const char *file_handler_node::get_name()
 {
     return name;
 }
 
-FILE *fhnode::get_fh()
+FILE *file_handler_node::get_fh()
 {
     return fh;
 }
 
-fhnode::~fhnode()
+file_handler_node::~file_handler_node()
 {
     delete tr;
 }

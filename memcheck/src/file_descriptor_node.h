@@ -1,5 +1,5 @@
-#ifndef FDNODE_H
-#define FDNODE_H
+#ifndef FILE_DESCRIPTOR_NODE_H
+#define FILE_DESCRIPTOR_NODE_H
 
 #include <stdio.h>
 
@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-    class fdnode
+    class file_descriptor_node
     {
     private:
         trace *tr;
@@ -18,7 +18,7 @@ extern "C"
         int fd;
 
     public:
-        fdnode(const char *n, int _fd);
+        file_descriptor_node(const char *n, int _fd);
 
         trace *get_trace();
 
@@ -26,7 +26,7 @@ extern "C"
 
         int get_fd();
 
-        ~fdnode();
+        ~file_descriptor_node();
     };
 
 #ifdef __cplusplus
