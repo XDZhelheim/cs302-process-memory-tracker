@@ -1,5 +1,5 @@
 # Project
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 project(memory_check)
 set(COMMON_FLAGS "-funwind-tables -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual \
                   -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wundef \
