@@ -82,13 +82,13 @@ FILE *fopen(const char *filename, const char *modes)
 
 int fclose(FILE *stream)
 {
-    int fd = fileno(stream);
+    logger_fd_record(RELEASE, stream, -1, NULL);
+
     logger_enable(false);
 
     int r = _IO_fclose(stream);
 
     logger_enable(true);
-    logger_fd_record(RELEASE, stream, fd, NULL);
 
     return r;
 }
