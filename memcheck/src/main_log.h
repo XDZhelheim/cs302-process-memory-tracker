@@ -7,6 +7,8 @@
 #define ALLOCATE 1
 #define RELEASE 0
 
+extern FILE *log_file;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -20,10 +22,6 @@ extern "C"
     void log_start(void);
 
     void log_finish(void);
-
-    void stdout_init(void);
-
-    void stdout_finish(void);
 
     void memory_log_init(void);
 
