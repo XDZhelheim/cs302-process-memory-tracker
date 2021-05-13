@@ -1,23 +1,25 @@
-"""
-- RSS（Resident set size），使用top命令可以查询到，是最常用的内存指标，表示进程占用的物理内存大小。但是，将各进程的RSS值相加，通常会超出整个系统的内存消耗，这是因为RSS中包含了各进程间共享的内存。
-- PSS（Proportional set size）所有使用某共享库的程序均分该共享库占用的内存时，每个进程占用的内存。显然所有进程的PSS之和就是系统的内存使用量。它会更准确一些，它将共享内存的大小进行平均后，再分摊到各进程上去。
-- USS (Unique set size) 进程独自占用的内存，它是PSS中自己的部分，它只计算了进程独自占用的内存大小，不包含任何共享的部分。
-"""
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import sys
 import os
 import time
 
-import PyQt5
+PROC_PATH="/proc"
 
-proc_path="/proc"
+REFRESH_INTERVAL=2 # 数据刷新的时间间隔 (s)
+CPU_USAGE_SAMPLING_INTERVAL=0.5 # CPU 时间的采样间隔 (s)
 
 PAGE_SIZE=int(os.sysconf("SC_PAGE_SIZE")/1024) # 4096 bytes / 1024 = 4 KiB
+# LOGICAL_CORES=int(os.popen("cat /proc/cpuinfo| grep \"processor\"| wc -l").read()) # CPU 逻辑核心数
 
 def get_RSS(pid: int) -> int:
     """
+    - RSS（Resident set size），使用top命令可以查询到，是最常用的内存指标，表示进程占用的物理内存大小。但是，将各进程的RSS值相加，通常会超出整个系统的内存消耗，这是因为RSS中包含了各进程间共享的内存。
+    - PSS（Proportional set size）所有使用某共享库的程序均分该共享库占用的内存时，每个进程占用的内存。显然所有进程的PSS之和就是系统的内存使用量。它会更准确一些，它将共享内存的大小进行平均后，再分摊到各进程上去。
+    - USS (Unique set size) 进程独自占用的内存，它是PSS中自己的部分，它只计算了进程独自占用的内存大小，不包含任何共享的部分。
+
+    ---
+
     ```x
     /proc/[pid]/statm
     Provides information about memory usage, measured in pages.
@@ -34,35 +36,120 @@ def get_RSS(pid: int) -> int:
         dt         (7) dirty pages (unused in Linux 2.6)
     ```
     """
-    statm_path=os.path.join(proc_path, str(pid), "statm")
+    statm_path=os.path.join(PROC_PATH, str(pid), "statm")
     try:
         with open(statm_path, "r") as statm:
             pages=int(statm.readline().split()[1]) # page numbers of RSS
     except FileNotFoundError:
-        pass
+        return 0
 
     return pages*PAGE_SIZE # RSS (KiB) resident set size
 
 def get_process_name(pid: int) -> str:
-    status_path=os.path.join(proc_path, str(pid), "status")
+    status_path=os.path.join(PROC_PATH, str(pid), "status")
     try:
         with open(status_path, "r") as status:
             name=status.readline().split()[1] # first line, the format is "Name: xxx"
     except FileNotFoundError:
-        pass
+        return ""
 
     return name
 
-def get_processes_list() -> list:
-    ps_list=[]
+def get_total_cpu_time() -> int:
+    cpu_stat_path=os.path.join(PROC_PATH, "stat")
 
-    for pid in os.listdir(proc_path):
+    with open(cpu_stat_path, "r") as cpu_stat:
+        cpu_time_components=cpu_stat.readline().split()[1:-1]
+    cpu_time_components=list(map(int, cpu_time_components))
+    total_cpu_time=sum(cpu_time_components)
+
+    return total_cpu_time
+
+def get_process_cpu_time(pid: int) -> int:
+    process_stat_path=os.path.join(PROC_PATH, str(pid), "stat")
+
+    try:
+        with open(process_stat_path, "r") as process_stat:
+            process_time_components=process_stat.readline().split()[13:17]
+        process_time_components=list(map(int, process_time_components))
+        process_cpu_time=sum(process_time_components)
+    except FileNotFoundError:
+        return 0
+
+    return process_cpu_time
+
+def get_process_cpu_usage_dict() -> dict:
+    """
+    - /proc/stat (the first row, 10 columns in total)
+        - user 从系统启动开始累计到当前时刻，处于用户态的运行时间，不包含 nice值为负进程
+        - nice 从系统启动开始累计到当前时刻，nice值为负的进程所占用的CPU时间
+        - system 从系统启动开始累计到当前时刻，处于核心态的运行时间
+        - idle 从系统启动开始累计到当前时刻，除IO等待时间以外的其它等待时间
+        - iowait 从系统启动开始累积到当前时刻，IO 等待时间
+        - irq 从系统启动开始累积到当前时刻，硬中断时间
+        - softirq 从系统启动开始累积到当前时刻，软中断时间
+        - stealstolen Which is the time spent in other operating systems when running in a virtualized environment
+        - guest Which is the time spent running a virtual CPU for guest operating systems under the control of the Linux kernel
+        - Time spent running a niced guest (virtual CPU for guest operating systems under the control of the Linux kernel)
+    - Total CPU time = user + nice + system + idle + iowait + irq + softirq + stealstolen + guest
+
+    ---
+
+    - /proc/<pid>/stat (start from column 1)
+        - column 14: utime 该任务在用户态运行的时间，单位为 jiffies
+        - column 15: stime 该任务在核心态运行的时间，单位为 jiffies
+        - column 16: cutime 累计的该任务的所有的 waited-for 进程曾经在用户态运行的时间，单位为 jiffies
+        - column 17: cstime 累计的该任务的所有的 waited-for 进程曾经在核心态运行的时间，单位为 jiffies
+    - Process CPU time = utime + stime + cutime + cstime
+
+    ---
+
+    - Process CPU Usage
+        - 采样两个足够短的时间间隔的 (total_cpu_time_1, total_cpu_time_2) and (process_cpu_time_1, process_cpu_time_2)
+        - cpu_usage = (process_cpu_time_2 - process_cpu_time_1) / (total_cpu_time_2 - total_cpu_time_1) * 100%
+        - 注意：这里和 top 的结果不一样, 这样算出来的结果已经是在多核的情况下了, 例如我的 8 逻辑处理器的 i5, 跑一个 while true, 结果就是 12.5%, 而 top 命令把它再乘了 8 就是 100%
+    """
+    pid_cpu_usage_dict={}
+
+    total_cpu_time_1=get_total_cpu_time()
+
+    for pid in os.listdir(PROC_PATH):
         if not pid.isdigit():
             continue
 
         pid=int(pid)
 
-        ps_list.append([pid, get_process_name(pid), get_RSS(pid)/1024]) # to MiB
+        pid_cpu_usage_dict[pid]=get_process_cpu_time(pid)
+
+    time.sleep(CPU_USAGE_SAMPLING_INTERVAL)
+
+    total_cpu_time_2=get_total_cpu_time()
+
+    for pid in os.listdir(PROC_PATH):
+        if not pid.isdigit():
+            continue
+
+        pid=int(pid)
+
+        pid_cpu_usage_dict[pid]=(get_process_cpu_time(pid) - pid_cpu_usage_dict[pid]) / (total_cpu_time_2 - total_cpu_time_1) * 100
+
+    return pid_cpu_usage_dict
+
+def get_processes_list() -> list:
+    ps_list=[]
+
+    pid_cpu_usage_dict=get_process_cpu_usage_dict()
+
+    for pid in os.listdir(PROC_PATH):
+        if not pid.isdigit():
+            continue
+
+        pid=int(pid)
+
+        try:
+            ps_list.append([pid, get_process_name(pid), get_RSS(pid)/1024, round(pid_cpu_usage_dict[pid], 2)]) # to MiB
+        except KeyError:
+            pass
 
     return ps_list
 
@@ -143,7 +230,7 @@ class Ui_MainWindow(object):
         self.table.setRowCount(len(ps_list))
 
         # set column name
-        self.table.setHorizontalHeaderLabels(["PID", "进程名", "内存使用 (MiB)"])
+        self.table.setHorizontalHeaderLabels(["PID", "进程名", "内存 MiB", "%CPU"])
 
         for i in range(len(ps_list)):
             ps=ps_list[i]
@@ -162,7 +249,7 @@ class UpdateData(QtCore.QThread):
     def run(self):
         while True:
             self.update.emit("")  # 发射信号
-            time.sleep(1)
+            time.sleep(REFRESH_INTERVAL)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
@@ -185,3 +272,4 @@ if __name__ == "__main__":
 
     sys.exit(app.exec_())
     
+    # print(get_processes_list())

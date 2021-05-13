@@ -137,3 +137,6 @@ temp*
 # assemble
 *.s
 *.asm
+
+# test files
+test*
