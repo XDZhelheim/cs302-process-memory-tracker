@@ -128,6 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# vscode
 .vscode
 
 ps_mem.py
@@ -137,6 +138,3 @@ temp*
 # assemble
 *.s
 *.asm
-
-# test files
-test*

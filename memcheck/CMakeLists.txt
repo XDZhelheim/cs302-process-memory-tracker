@@ -31,6 +31,8 @@ add_executable(test_cpp test/test.cpp)
 ## mat
 add_executable(mat_c test/mat.c)
 add_executable(mat_cpp test/mat.cpp)
+## class
+add_executable(line test/line.cpp)
 
 # reference
 add_executable(redirect_c ref/mem.c ref/c_test.c)

@@ -75,9 +75,10 @@ void memory_log_record(int type, void *ptr, size_t size, size_t block)
             memory_map.erase(ptr);
 
             fprintf(log_file, "%s Release  memory at %p\n", get_local_time(), ptr);
+            fprintf(stdout, "\033[31;1mInfo\033[0m: %s Release  memory at %p\n", get_local_time(), ptr);
             memory_release++;
 
-            memory_size_allocate += s;
+            memory_size_release += s;
             current_memory_size -= s;
         }
 
