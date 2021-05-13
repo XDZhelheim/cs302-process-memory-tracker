@@ -1,16 +1,10 @@
 # Project
 cmake_minimum_required(VERSION 3.16)
 project(memory_check)
-set(COMMON_FLAGS "-funwind-tables -g -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual \
-                  -Wno-missing-braces -Wswitch-default -Wcast-align -Wunreachable-code -Wundef \
-                  -Wuninitialized -rdynamic")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 ${COMMON_FLAGS} -Wstrict-prototypes -Wmissing-prototypes")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAGS}")
 
-# C++ compiler flags
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(COMMON_FLAGS "-rdynamic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAGS}")
 
 # Library
 add_library(memory_check SHARED 
@@ -19,9 +13,7 @@ add_library(memory_check SHARED
     src/file_descriptor_redirect.c src/file_descriptor_log.cpp src/file_descriptor_node.cpp 
     src/file_handler_redirect.c src/file_handler_log.cpp src/file_handler_node.cpp)
 
-target_compile_features(memory_check PRIVATE cxx_variadic_templates)
-
-# configuration
+# configuration script
 configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
 
 # test

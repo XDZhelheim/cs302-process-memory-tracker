@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 100
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
