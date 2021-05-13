@@ -34,6 +34,7 @@ void log_start(void)
 void log_finish(void)
 {
     finished = true;
+    close(1);
 
     fprintf(stderr, "%s Program terminated\n\n", get_local_time());
 
@@ -51,16 +52,17 @@ void stdout_init(void)
 
 void stdout_finish(void)
 {
+    close(pipe_fd[1]);
     fprintf(stderr, "------------------------------------------stdout------------------------------------------\n");
 
     const int buffer_size = 1024;
     char buffer[1024];
     
-    int size = buffer_size;
-    while (size == buffer_size)
+    int size = buffer_size - 1;
+    while (size == buffer_size - 1)
     {
-        memset(buffer, 0, buffer_size);
-        size = read(pipe_fd[0], buffer, buffer_size);
+        size = read(pipe_fd[0], buffer, buffer_size - 1);
+        buffer[size] = '\0';
         fprintf(stderr, "%s", buffer);
     }
 
@@ -71,5 +73,4 @@ void stdout_finish(void)
 
     fprintf(stderr, "---------------------------------------stdout ended---------------------------------------\n\n");
     close(pipe_fd[0]);
-    close(pipe_fd[1]);
 }
