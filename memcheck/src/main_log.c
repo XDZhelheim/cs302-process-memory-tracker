@@ -25,7 +25,7 @@ void log_start(void)
     memory_log_init();
     file_handler_log_init();
     file_descriptor_log_init();
-    
+
     fprintf(stderr, "%s Program Designed by MasterWanna\n", get_local_time());
     fprintf(stderr, "%s Program started pid = %d\n", get_local_time(), getpid());
     started = true;
@@ -57,7 +57,7 @@ void stdout_finish(void)
 
     const int buffer_size = 1024;
     char buffer[1024];
-    
+
     int size = buffer_size - 1;
     while (size == buffer_size - 1)
     {
@@ -65,11 +65,7 @@ void stdout_finish(void)
         buffer[size] = '\0';
         fprintf(stderr, "%s", buffer);
     }
-
-    if (buffer[size - 1] != '\n')
-    {
-        fprintf(stderr, "\n");
-    }
+    fprintf(stderr, "\n");
 
     fprintf(stderr, "---------------------------------------stdout ended---------------------------------------\n\n");
     close(pipe_fd[0]);
