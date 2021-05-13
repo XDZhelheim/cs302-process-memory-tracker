@@ -133,7 +133,7 @@ Base requirements:
 Improvements:
 
 * [x] Show stack trace of memory operations which causes memory leak.
-* [ ] Generate a `CLI` with more detail information like `pid`, 
+* [x] Generate a `CLI` with more detail information like `pid`, 
 * [ ] Implement `GUI` for this task, using tools like `Qt`.
 
 ##### References
