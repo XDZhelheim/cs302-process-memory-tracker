@@ -21,6 +21,10 @@ extern "C"
 
     void log_finish(void);
 
+    void stdout_init(void);
+
+    void stdout_finish(void);
+
     void memory_log_init(void);
 
     void memory_log_record(int type, void *ptr, size_t size, size_t block);

@@ -7,10 +7,14 @@
 int main(void)
 {
     free(malloc(100));
-    malloc(200);
     FILE *f = fopen("./Makefile", "rb");
-    // f = freopen("./CMakeCache.txt", "rb", f);
-    printf("1234%d\n",1);
+    printf("1234\n");
+    printf("%p\n", f);
+    fflush(stdout);
+    f = freopen("./cmake_install.cmake", "rb", f);
+    printf("1234\n");
+    printf("%p", f);
+    fflush(stdout);
     fclose(f);
     return 0;
 }
