@@ -1,6 +1,6 @@
+#include <map>
 #include "main_log.h"
 #include "memory_node.h"
-#include <map>
 
 using std::map;
 using std::pair;
