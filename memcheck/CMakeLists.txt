@@ -6,13 +6,12 @@ set(COMMON_FLAGS "-rdynamic")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAGS}")
 
+# inc and src directory
+include_directories(inc/)
+aux_source_directory(src/ LIB_SRC)
+
 # Library
-add_library(memory_check SHARED 
-    src/main_redirect.c src/main_log.c src/trace.cpp 
-    src/memory_redirect.c src/memory_log.cpp src/memory_node.cpp 
-    src/file_descriptor_redirect.c src/file_descriptor_log.cpp src/file_descriptor_node.cpp 
-    src/file_handler_redirect.c src/file_handler_log.cpp src/file_handler_node.cpp
-)
+add_library(memory_check SHARED ${LIB_SRC})
 
 # configuration script
 configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
