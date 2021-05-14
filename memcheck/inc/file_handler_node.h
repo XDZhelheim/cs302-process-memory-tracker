@@ -16,15 +16,18 @@ extern "C"
         trace *tr;
         const char *name;
         FILE *fh;
+        int ftype;
 
     public:
-        file_handler_node(const char *n, FILE *fh);
+        file_handler_node(const char *n, FILE *fh, int ftype);
 
         trace *get_trace();
 
         const char *get_name();
 
         FILE *get_fh();
+
+        int get_ftype();
 
         ~file_handler_node();
     };

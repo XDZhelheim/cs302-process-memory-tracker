@@ -71,7 +71,7 @@ void memory_log_record(int type, void *ptr, size_t size, size_t block)
             {
                 s = node->get_block() * node->get_size();
             }
-            
+
             memory_map.erase(ptr);
 
             fprintf(log_file, "%s Release  memory at %p\n", get_local_time(), ptr);
@@ -88,7 +88,7 @@ void memory_log_record(int type, void *ptr, size_t size, size_t block)
 
 void memory_log_finish(void)
 {
-    fprintf(log_file, "------------------------------------------Memory------------------------------------------\n");
+    fprintf(log_file, "==========================================Memory==========================================\n");
     fprintf(log_file, "Summary:\n");
     fprintf(log_file, "    %d node(s) of memory request allocated.\n", memory_allocate);
     fprintf(log_file, "    %d node(s) of memory request released.\n", memory_release);
@@ -99,26 +99,26 @@ void memory_log_finish(void)
     fprintf(log_file, "    Max   memory size allocated    in bytes : %ld\n", max_memory_size);
     if (memory_allocate - memory_release)
     {
-        fprintf(log_file, "  --------------------------------------List start--------------------------------------\n\n");
+        fprintf(log_file, "------------------------------------------------------------------------------------------\n\n");
         int index = 0;
         for (pair<void *, memory_node *> p : memory_map)
         {
             memory_node *node = p.second;
             trace *tr = node->get_trace();
 
-            fprintf(log_file, "  %02d. Memory at %p allocated at %s : %ld block(s) with size %ld\n", ++index, node->get_ptr(), node->get_trace()->get_trace_time(), node->get_block(), node->get_size());
+            fprintf(log_file, "%02d. Memory at %p allocated at %s : %ld block(s) with size %ld\n", ++index, node->get_ptr(), node->get_trace()->get_trace_time(), node->get_block(), node->get_size());
             for (int i = 3; i < tr->get_trace_size(); i++)
             {
-                fprintf(log_file, "          at %p: %s\n", tr->get_back_trace()[i], tr->get_symbols()[i]);
+                fprintf(log_file, "\t\tat %p: %s\n", tr->get_back_trace()[i], tr->get_symbols()[i]);
             }
             free(node->get_ptr());
-            fprintf(log_file, "     ---- Auto freed %p\n\n", node->get_ptr());
+            fprintf(log_file, "\t---- Auto freed %p\n\n", node->get_ptr());
+            fprintf(log_file, "------------------------------------------------------------------------------------------\n\n");
         }
-        fprintf(log_file, "  --------------------------------------List ended--------------------------------------\n\n");
     }
     else
     {
         fprintf(log_file, "\nNo memory leak!\n");
     }
-    fprintf(log_file, "---------------------------------------Memory Ended---------------------------------------\n\n");
+    fprintf(log_file, "=======================================Memory Ended=======================================\n\n");
 }

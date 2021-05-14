@@ -8,10 +8,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAGS}")
 
 # inc and src directory
 include_directories(inc/)
-aux_source_directory(src/ LIB_SRC)
+aux_source_directory(src/ SOURCE_FILE)
 
 # Library
-add_library(memory_check SHARED ${LIB_SRC})
+add_library(memory_check SHARED ${SOURCE_FILE})
 
 # configuration script
 configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
@@ -23,6 +23,8 @@ add_executable(test_cpp test/test.cpp)
 ## mat
 add_executable(mat_c test/mat.c)
 add_executable(mat_cpp test/mat.cpp)
+## pipe
+add_executable(pipe test/pipe.c)
 ## class
 add_executable(line test/line.cpp)
 

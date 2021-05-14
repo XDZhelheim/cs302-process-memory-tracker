@@ -7,6 +7,9 @@
 #define ALLOCATE 1
 #define RELEASE 0
 
+#define _FILE_ 0
+#define _PIPE_ 1
+
 extern FILE *log_file;
 
 #ifdef __cplusplus
@@ -31,15 +34,9 @@ extern "C"
 
     void file_handler_log_init(void);
 
-    void file_handler_log_record(int type, FILE *f, const char *filename);
+    void file_handler_log_record(int type, FILE *f, const char *filename, int ftype);
 
     void file_handler_log_finish(void);
-    
-    void file_descriptor_log_init(void);
-
-    void file_descriptor_log_record(int type, int fd, const char *filename);
-
-    void file_descriptor_log_finish(void);
 
 #ifdef __cplusplus
 }
