@@ -73,7 +73,7 @@ Further (not must-required but we will implement for the software):
 * [x] Multithreading: A new thread to fetch and update data every 1 second, then update display
 * [x] Feature: sorting (ascending and descending) via clicking on the column title
 * [x] Show CPU usage of each process
-* [ ] Show IO usage of each process
+* [x] Show IO usage of each process
 * [x] Show network usage of ~~each process~~ system
 * [ ] Identify system process and user process for protection
 * [ ] Show the owner of each process

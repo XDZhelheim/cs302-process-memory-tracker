@@ -7,7 +7,7 @@ import datetime
 
 PROC_PATH="/proc"
 
-REFRESH_INTERVAL=2 # 数据刷新的时间间隔 (s)
+REFRESH_INTERVAL=3 # 数据刷新的时间间隔 (s)
 CPU_USAGE_SAMPLING_INTERVAL=0.5 # CPU 时间的采样间隔 (s)
 
 PAGE_SIZE=int(os.sysconf("SC_PAGE_SIZE")/1024) # 4096 bytes / 1024 = 4 KiB
@@ -139,6 +139,51 @@ def get_process_cpu_usage_dict() -> dict:
 
     return pid_cpu_usage_dict
 
+def get_process_io_usage(pid: int) -> tuple:
+    process_io_path=os.path.join(PROC_PATH, str(pid), "io")
+
+    try:
+        with open(process_io_path, "r") as process_io:
+            io_info=process_io.readlines()[4:6]
+    except PermissionError:
+        return (-1024, -1024)
+
+    read_bytes=int(io_info[0].split()[1])
+    write_bytes=int(io_info[1].split()[1])
+
+    return (read_bytes, write_bytes)
+
+def get_process_io_usage_dict() -> dict:
+    pid_io_usage_dict={}
+
+    for pid in os.listdir(PROC_PATH):
+        if not pid.isdigit():
+            continue
+
+        pid=int(pid)
+
+        pid_io_usage_dict[pid]=get_process_io_usage(pid)
+
+    time.sleep(1)
+
+    for pid in os.listdir(PROC_PATH):
+        if not pid.isdigit():
+            continue
+
+        pid=int(pid)
+
+        if (pid_io_usage_dict[pid][0]==-1024):
+            continue
+
+        read_write=get_process_io_usage(pid)
+
+        try:
+            pid_io_usage_dict[pid]=(read_write[0]-pid_io_usage_dict[pid][0], read_write[1]-pid_io_usage_dict[pid][1])
+        except KeyError:
+            pass
+    
+    return pid_io_usage_dict
+
 def network_usage_helper() -> tuple:
     net_dev_path=os.path.join(PROC_PATH, "net", "dev")
     
@@ -191,6 +236,8 @@ def get_processes_list() -> list:
 
     pid_cpu_usage_dict=get_process_cpu_usage_dict()
 
+    pid_io_usage_dict=get_process_io_usage_dict()
+
     for pid in os.listdir(PROC_PATH):
         if not pid.isdigit():
             continue
@@ -198,7 +245,7 @@ def get_processes_list() -> list:
         pid=int(pid)
 
         try:
-            ps_list.append([pid, get_process_name(pid), get_RSS(pid)/1024, round(pid_cpu_usage_dict[pid], 2)]) # to MiB
+            ps_list.append([pid, get_process_name(pid), get_RSS(pid)/1024, round(pid_cpu_usage_dict[pid], 2), round(pid_io_usage_dict[pid][0]/1024, 2), round(pid_io_usage_dict[pid][1]/1024, 2)]) # to MiB
         except KeyError:
             pass
 
@@ -312,7 +359,7 @@ class Ui_MainWindow(object):
         self.table.setRowCount(len(ps_list))
 
         # set column name
-        self.table.setHorizontalHeaderLabels(["PID", "进程名", "内存 MiB", "%CPU"])
+        self.table.setHorizontalHeaderLabels(["PID", "进程名", "内存 MiB", "%CPU", "读取 KiB/s", "写入 KiB/s"])
 
         for i in range(len(ps_list)):
             ps=ps_list[i]
@@ -367,4 +414,3 @@ if __name__ == "__main__":
     MainWindow.show()
 
     sys.exit(app.exec_())
-    
