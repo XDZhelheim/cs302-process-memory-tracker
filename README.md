@@ -56,7 +56,7 @@ We are all familiar to `Windows Task Manager`, and our expectation is to develop
 * [PyQt5 Doc](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 * [Qt Designer Manual](https://doc.qt.io/qt-5/qtdesigner-manual.html)
 
-##### Design Plan & TODO List (by 5.11)
+##### Design Plan & TODO List (by 5.14)
 
 Must implement (this project required):
 
@@ -72,9 +72,9 @@ Further (not must-required but we will implement for the software):
 * [x] Migrate existing CLI version to GUI, and show same info
 * [x] Multithreading: A new thread to fetch and update data every 1 second, then update display
 * [x] Feature: sorting (ascending and descending) via clicking on the column title
-* [ ] Show CPU usage of each process
+* [x] Show CPU usage of each process
 * [ ] Show IO usage of each process
-* [ ] Show network usage of each process
+* [x] Show network usage of ~~each process~~ system
 * [ ] Identify system process and user process for protection
 * [ ] Show the owner of each process
 * [ ] Button: kill selected process (cannot kill important system processes)
