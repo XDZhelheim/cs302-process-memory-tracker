@@ -24,7 +24,6 @@ void log_start(void)
     log_file = tmpfile();
     memory_log_init();
     file_handler_log_init();
-    file_descriptor_log_init();
 
     fprintf(log_file, "========================================Running Log=======================================\n\n");
     fprintf(log_file, "%s Program Designed by MasterWanna\n", get_local_time());
@@ -44,7 +43,6 @@ void log_finish(void)
 
     memory_log_finish();
     file_handler_log_finish();
-    file_descriptor_log_finish();
 
     fflush(log_file);
     fseek(log_file, 0, SEEK_SET);

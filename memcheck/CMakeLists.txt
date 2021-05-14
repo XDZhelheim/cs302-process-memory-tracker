@@ -23,6 +23,8 @@ add_executable(test_cpp test/test.cpp)
 ## mat
 add_executable(mat_c test/mat.c)
 add_executable(mat_cpp test/mat.cpp)
+## pipe
+add_executable(pipe test/pipe.c)
 ## class
 add_executable(line test/line.cpp)
 
