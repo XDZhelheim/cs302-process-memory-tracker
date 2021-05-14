@@ -70,21 +70,6 @@ void file_handler_log_finish(void)
                 fprintf(log_file, "\t\tat %p: %s\n", tr->get_back_trace()[i], tr->get_symbols()[i]);
             }
 
-            switch (node->get_ftype())
-            {
-            case _FILE_:
-                fclose(node->get_fh());
-                break;
-
-            case _PIPE_:
-                pclose(node->get_fh());
-                break;
-
-            default:
-                break;
-            }
-
-            fprintf(log_file, "\t---- Auto closed %p\n\n", (void *)node->get_fh());
             fprintf(log_file, "------------------------------------------------------------------------------------------\n\n");
         }
     }

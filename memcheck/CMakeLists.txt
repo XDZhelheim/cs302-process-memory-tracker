@@ -14,7 +14,7 @@ aux_source_directory(src/ SOURCE_FILE)
 add_library(memory_check SHARED ${SOURCE_FILE})
 
 # configuration script
-configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)
+file(COPY script/run DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # test
 ## normal
@@ -27,6 +27,8 @@ add_executable(mat_cpp test/mat.cpp)
 add_executable(pipe test/pipe.c)
 ## class
 add_executable(line test/line.cpp)
+## Python
+file(COPY test/test_py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # reference
 add_executable(redirect_c ref/mem.c ref/c_test.c)

@@ -36,7 +36,10 @@ void *calloc(size_t nmemb, size_t size)
 
 void free(void *ptr)
 {
-    memory_log_record(RELEASE, ptr, 0, 0);
+    if (ptr)
+    {
+        memory_log_record(RELEASE, ptr, 0, 0);
+    }
 
     __libc_free(ptr);
 }

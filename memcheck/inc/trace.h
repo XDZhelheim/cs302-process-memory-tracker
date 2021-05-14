@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#define MAX_STACK_TRACE 30
+#define MAX_STACK_TRACE 100
 
 #ifdef __cplusplus
 extern "C"

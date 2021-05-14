@@ -111,8 +111,7 @@ void memory_log_finish(void)
             {
                 fprintf(log_file, "\t\tat %p: %s\n", tr->get_back_trace()[i], tr->get_symbols()[i]);
             }
-            free(node->get_ptr());
-            fprintf(log_file, "\t---- Auto freed %p\n\n", node->get_ptr());
+            
             fprintf(log_file, "------------------------------------------------------------------------------------------\n\n");
         }
     }

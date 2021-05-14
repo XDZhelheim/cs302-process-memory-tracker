@@ -3,11 +3,11 @@
 #include "main_redirect.h"
 
 extern FILE *_IO_fopen(const char *filename, const char *mode);
-extern FILE* _IO_file_fopen (FILE *stream, const char *filename, const char *mode, int);
-extern int _IO_file_close_it (FILE *stream);
+extern FILE *_IO_file_fopen(FILE *stream, const char *filename, const char *mode, int);
+extern int _IO_file_close_it(FILE *stream);
 extern int _IO_fclose(FILE *stream);
 
-extern FILE* _IO_popen (const char*command, const char* nodes) __THROW;
+extern FILE *_IO_popen(const char *command, const char *nodes) __THROW;
 
 FILE *fopen(const char *filename, const char *mode)
 {
@@ -33,7 +33,10 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
 
     log_enable(true);
 
-    file_handler_log_record(RELEASE, stream, NULL, _FILE_);
+    if (stream)
+    {
+        file_handler_log_record(RELEASE, stream, NULL, _FILE_);
+    }
 
     log_enable(false);
 
@@ -51,11 +54,14 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream)
 
 int fclose(FILE *stream)
 {
-    file_handler_log_record(RELEASE, stream, NULL, _FILE_);
-
     log_enable(false);
 
     int r = _IO_fclose(stream);
+
+    if (stream)
+    {
+        file_handler_log_record(RELEASE, stream, NULL, _FILE_);
+    }
 
     log_enable(true);
 
@@ -80,13 +86,16 @@ FILE *popen(const char *command, const char *modes)
 
 int pclose(FILE *stream)
 {
-    file_handler_log_record(RELEASE, stream, NULL, _PIPE_);
-
     log_enable(false);
 
     int r = _IO_fclose(stream);
 
     log_enable(true);
+
+    if (stream)
+    {
+        file_handler_log_record(RELEASE, stream, NULL, _PIPE_);
+    }
 
     return r;
 }
