@@ -8,10 +8,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAGS}")
 
 # inc and src directory
 include_directories(inc/)
-aux_source_directory(src/ LIB_SRC)
+aux_source_directory(src/ SOURCE_FILE)
 
 # Library
-add_library(memory_check SHARED ${LIB_SRC})
+add_library(memory_check SHARED ${SOURCE_FILE})
 
 # configuration script
 configure_file(script/run ${CMAKE_CURRENT_BINARY_DIR}/run COPYONLY)

@@ -26,7 +26,7 @@ void log_start(void)
     file_handler_log_init();
     file_descriptor_log_init();
 
-    fprintf(log_file, "----------------------------------------Running Log----------------------------------------\n\n");
+    fprintf(log_file, "========================================Running Log=======================================\n\n");
     fprintf(log_file, "%s Program Designed by MasterWanna\n", get_local_time());
     fprintf(stdout, "\033[31;1mInfo\033[0m: %s Program Designed by MasterWanna\n", get_local_time());
     fprintf(log_file, "%s Program started pid = %d\n", get_local_time(), getpid());
@@ -40,7 +40,7 @@ void log_finish(void)
 
     fprintf(log_file, "%s Program terminated\n\n", get_local_time());
     fprintf(stdout, "\033[31;1mInfo\033[0m: %s Program terminated\n\n", get_local_time());
-    fprintf(log_file, "-------------------------------------Running Log Ended-------------------------------------\n\n");
+    fprintf(log_file, "=====================================Running Log Ended====================================\n\n");
 
     memory_log_finish();
     file_handler_log_finish();
