@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import os
 import time
+import datetime
 
 PROC_PATH="/proc"
 
@@ -131,9 +132,59 @@ def get_process_cpu_usage_dict() -> dict:
 
         pid=int(pid)
 
-        pid_cpu_usage_dict[pid]=(get_process_cpu_time(pid) - pid_cpu_usage_dict[pid]) / (total_cpu_time_2 - total_cpu_time_1) * 100
+        try:
+            pid_cpu_usage_dict[pid]=(get_process_cpu_time(pid) - pid_cpu_usage_dict[pid]) / (total_cpu_time_2 - total_cpu_time_1) * 100
+        except KeyError:
+            pass
 
     return pid_cpu_usage_dict
+
+def network_usage_helper() -> tuple:
+    net_dev_path=os.path.join(PROC_PATH, "net", "dev")
+    
+    with open(net_dev_path, "r") as net_dev:
+        net_info=net_dev.readlines()[2:]
+
+    recv=0; trans=0
+    for line in net_info:
+        lst=line.split()
+        recv+=int(lst[1])
+        trans+=int(lst[9])
+
+    return (recv, trans)
+
+def get_network_usage() -> tuple:
+    """
+    - /proc/net/dev
+
+        The dev pseudo-file contains network device status
+        information.  This gives the number of received and sent
+        packets, the number of errors and collisions and other
+        basic statistics.
+
+    ```x
+    Inter-|   Receive                                                |  Transmit
+     face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+       lo: 2776770   11307    0    0    0     0          0         0  2776770   11307    0    0    0     0       0          0
+     eth0: 1215645    2751    0    0    0     0          0         0  1782404    4324    0    0    0   427       0          0
+     ppp0: 1622270    5552    1    0    0     0          0         0   354130    5669    0    0    0     0       0          0
+     tap0:    7714      81    0    0    0     0          0         0     7714      81    0    0    0     0       0          0
+    ```
+    
+    ---
+
+    (Receive, Transmit) KB/s
+    """
+    recv_1, trans_1=network_usage_helper()
+
+    time.sleep(1)
+
+    recv_2, trans_2=network_usage_helper()
+
+    recv_KBps=(recv_2-recv_1)/1024
+    trans_KBps=(trans_2-trans_1)/1024
+
+    return (recv_KBps, trans_KBps)
 
 def get_processes_list() -> list:
     ps_list=[]
@@ -156,19 +207,19 @@ def get_processes_list() -> list:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(600, 750)
+        MainWindow.resize(600, 781)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(600, 750))
-        MainWindow.setMaximumSize(QtCore.QSize(600, 750))
+        MainWindow.setMinimumSize(QtCore.QSize(600, 781))
+        MainWindow.setMaximumSize(QtCore.QSize(600, 781))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
         self.table = QtWidgets.QTableWidget(self.centralwidget)
-        self.table.setGeometry(QtCore.QRect(-10, 0, 621, 641))
+        self.table.setGeometry(QtCore.QRect(-10, 30, 621, 641))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -185,21 +236,50 @@ class Ui_MainWindow(object):
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) # disable editing table
 
         self.kill_button = QtWidgets.QPushButton(self.centralwidget)
-        self.kill_button.setGeometry(QtCore.QRect(490, 650, 101, 41))
+        self.kill_button.setGeometry(QtCore.QRect(490, 680, 101, 41))
         self.kill_button.setObjectName("kill_button")
 
         font = QtGui.QFont()
         font.setPointSize(12)
+
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(10, 660, 201, 31))
+        self.label.setGeometry(QtCore.QRect(10, 690, 201, 31))
         self.label.setFont(font)
         self.label.setObjectName("label")
 
         self.line = QtWidgets.QFrame(self.centralwidget)
-        self.line.setGeometry(QtCore.QRect(0, 650, 211, 16))
+        self.line.setGeometry(QtCore.QRect(0, 680, 211, 16))
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
+
+        self.recv_label = QtWidgets.QLabel(self.centralwidget)
+        self.recv_label.setGeometry(QtCore.QRect(320, 5, 31, 23))
+        self.recv_label.setFont(font)
+        self.recv_label.setObjectName("recv_label")
+
+        self.send_label = QtWidgets.QLabel(self.centralwidget)
+        self.send_label.setGeometry(QtCore.QRect(460, 5, 31, 23))
+        self.send_label.setFont(font)
+        self.send_label.setObjectName("send_label")
+
+        self.recv_speed_label = QtWidgets.QLabel(self.centralwidget)
+        self.recv_speed_label.setGeometry(QtCore.QRect(360, 5, 101, 23))
+        self.recv_speed_label.setFont(font)
+        self.recv_speed_label.setText("")
+        self.recv_speed_label.setObjectName("recv_speed_label")
+
+        self.send_speed_label = QtWidgets.QLabel(self.centralwidget)
+        self.send_speed_label.setGeometry(QtCore.QRect(500, 5, 101, 23))
+        self.send_speed_label.setFont(font)
+        self.send_speed_label.setText("")
+        self.send_speed_label.setObjectName("send_speed_label")
+
+        self.time_label = QtWidgets.QLabel(self.centralwidget)
+        self.time_label.setGeometry(QtCore.QRect(10, 5, 241, 23))
+        self.time_label.setFont(font)
+        self.time_label.setText("")
+        self.time_label.setObjectName("time_label")
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -218,6 +298,8 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "进程监视器"))
         self.kill_button.setText(_translate("MainWindow", "结束进程"))
         self.label.setText(_translate("MainWindow", "Designed by 董正 in PyQt5"))
+        self.recv_label.setText(_translate("MainWindow", "接收"))
+        self.send_label.setText(_translate("MainWindow", "发送"))
 
     def set_table_contents(self):
         # 这里要先关闭排序，更新数据之后再开启排序，否则表格数据就不对，玄学问题 https://bbs.csdn.net/topics/390608058
@@ -241,6 +323,20 @@ class Ui_MainWindow(object):
                 self.table.setItem(i, j, item)
 
         self.table.setSortingEnabled(True)
+
+        recv, trans=get_network_usage()
+
+        if recv<1000:
+            self.recv_speed_label.setText("{} KiB/s".format(round(recv, 1)))
+        else:
+            self.recv_speed_label.setText("{} MiB/s".format(round(recv/1024, 1)))
+        if trans<1000:
+            self.send_speed_label.setText("{} KiB/s".format(round(trans, 1)))
+        else:
+            self.send_speed_label.setText("{} MiB/s".format(round(trans/1024, 1)))
+
+        cur_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.time_label.setText(cur_time)
 
 # thread to update table data
 class UpdateData(QtCore.QThread):
@@ -272,4 +368,3 @@ if __name__ == "__main__":
 
     sys.exit(app.exec_())
     
-    # print(get_processes_list())
