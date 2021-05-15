@@ -8,5 +8,4 @@ int main(void)
     {
         m[i] = (int *)calloc(4, sizeof(int));
     }
-    
 }

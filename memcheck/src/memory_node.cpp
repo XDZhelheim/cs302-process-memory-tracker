@@ -4,7 +4,7 @@
 
 #define PATTERN_SIZE 1
 
-const char *pattern[PATTERN_SIZE] = {{"_IO_file"}};
+const char *pattern[PATTERN_SIZE] = {"_IO_file"};
 
 bool contains(const char *str, const char *s)
 {
