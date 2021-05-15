@@ -122,7 +122,7 @@ Divided into two steps:
 
 2. Implement a library which can be loaded with `LD_PRELOAD` variable, and write a script for it. This method does not need to edit source file, and can be used on any `C/C++` program.
 
-##### Design Plan & TODO List (by 5.11)
+##### Design Plan & TODO List (by 5.15)
 
 Base requirements:
 
@@ -133,7 +133,9 @@ Base requirements:
 Improvements:
 
 * [x] Show stack trace of memory operations which causes memory leak.
-* [x] Generate a `CLI` with more detail information like `pid`, 
+* [x] Generate a `CLI` with more detail information like `pid`.
+* [x] Generate a `CLI` permitting normal running operation like `I/O`.
+* [x] Gather information log at the end of output.
 * [ ] Implement `GUI` for this task, using tools like `Qt`.
 
 ##### References
