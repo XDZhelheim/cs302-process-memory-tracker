@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "main_redirect.h"
+#include "file_handler_type.h"
 
 extern FILE *_IO_fopen(const char *filename, const char *mode);
 extern FILE *_IO_file_fopen(FILE *stream, const char *filename, const char *mode, int);
@@ -58,12 +59,12 @@ int fclose(FILE *stream)
 
     int r = _IO_fclose(stream);
 
+    log_enable(true);
+
     if (stream)
     {
         file_handler_log_record(RELEASE, stream, NULL, _FILE_);
     }
-
-    log_enable(true);
 
     return r;
 }

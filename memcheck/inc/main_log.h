@@ -7,9 +7,6 @@
 #define ALLOCATE 1
 #define RELEASE 0
 
-#define _FILE_ 0
-#define _PIPE_ 1
-
 extern FILE *log_file;
 
 #ifdef __cplusplus

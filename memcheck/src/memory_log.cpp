@@ -34,13 +34,6 @@ void memory_log_record(int type, void *ptr, size_t size, size_t block)
             size_t s = size * block;
             memory_node *node = new memory_node(ptr, size, block);
 
-            if (!node->valid_memory_allocation())
-            {
-                delete node;
-                log_enable(true);
-                return;
-            }
-
             memory_map[ptr] = node;
 
             if (block == 1)
@@ -112,7 +105,7 @@ void memory_log_finish(void)
                 fprintf(log_file, "\t\tat %p: %s\n", tr->get_back_trace()[i], tr->get_symbols()[i]);
             }
             
-            fprintf(log_file, "------------------------------------------------------------------------------------------\n\n");
+            fprintf(log_file, "\n------------------------------------------------------------------------------------------\n\n");
         }
     }
     else

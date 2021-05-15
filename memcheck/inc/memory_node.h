@@ -8,7 +8,6 @@
 extern "C"
 {
 #endif
-    bool contains(const char *str, const char *s);
 
     class memory_node
     {
@@ -21,8 +20,6 @@ extern "C"
     public:
         memory_node(void *p, size_t s, size_t b);
 
-        bool valid_memory_allocation();
-
         trace *get_trace();
 
         void *get_ptr();
@@ -33,6 +30,7 @@ extern "C"
 
         ~memory_node();
     };
+    
 #ifdef __cplusplus
 }
 #endif
