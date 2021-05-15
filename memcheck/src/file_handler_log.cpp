@@ -35,6 +35,12 @@ void file_handler_log_record(int type, FILE *f, const char *fname, int ftype)
         }
         else
         {
+            if (file_handler_map[f] == NULL)
+            {
+                log_enable(true);
+                return;
+            }
+
             file_handler_map.erase(f);
 
             fprintf(log_file, "%s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);
