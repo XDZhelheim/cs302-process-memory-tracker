@@ -78,7 +78,7 @@ Further (not must-required but we will implement for the software):
 * [x] Identify system process and user process for protection
 * [x] Show the owner of each process
 * [x] Button: ~~kill~~ terminate selected process (cannot kill important system processes)
-* [ ] Button & dialog: set `nice` value of selected process
+* [x] Button & dialog: set `nice` value of selected process
 * [ ] Deploy executable files & make a release of the software
 
 If have time:

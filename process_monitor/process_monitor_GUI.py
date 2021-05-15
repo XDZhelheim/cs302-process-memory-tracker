@@ -12,6 +12,7 @@ CPU_USAGE_SAMPLING_INTERVAL=0.5 # CPU 时间的采样间隔 (s)
 
 PAGE_SIZE=int(os.sysconf("SC_PAGE_SIZE")/1024) # 4096 bytes / 1024 = 4 KiB
 # LOGICAL_CORES=int(os.popen("cat /proc/cpuinfo| grep \"processor\"| wc -l").read()) # CPU 逻辑核心数
+MAX_PID=int(open("/proc/sys/kernel/pid_max").read())
 
 uid_user_dict={}
 
@@ -194,7 +195,7 @@ def get_process_io_usage(pid: int) -> tuple:
     try:
         with open(process_io_path, "r") as process_io:
             io_info=process_io.readlines()[4:6]
-    except PermissionError:
+    except (PermissionError, FileNotFoundError):
         return (-1024, -1024)
 
     read_bytes=int(io_info[0].split()[1])
@@ -313,26 +314,26 @@ def get_processes_list() -> list:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(600, 781)
+        MainWindow.resize(700, 781)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(600, 781))
-        MainWindow.setMaximumSize(QtCore.QSize(600, 781))
+        MainWindow.setMinimumSize(QtCore.QSize(700, 781))
+        MainWindow.setMaximumSize(QtCore.QSize(700, 781))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
         self.table = QtWidgets.QTableWidget(self.centralwidget)
-        self.table.setGeometry(QtCore.QRect(-10, 30, 621, 641))
+        self.table.setGeometry(QtCore.QRect(-10, 30, 711, 641))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.table.sizePolicy().hasHeightForWidth())
         self.table.setSizePolicy(sizePolicy)
-        self.table.setMinimumSize(QtCore.QSize(621, 641))
-        self.table.setMaximumSize(QtCore.QSize(621, 641))
+        self.table.setMinimumSize(QtCore.QSize(711, 641))
+        self.table.setMaximumSize(QtCore.QSize(711, 641))
         self.table.setObjectName("table")
         self.table.setColumnCount(0)
         self.table.setRowCount(0)
@@ -342,20 +343,20 @@ class Ui_MainWindow(object):
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) # disable editing table
 
         self.kill_button = QtWidgets.QPushButton(self.centralwidget)
-        self.kill_button.setGeometry(QtCore.QRect(490, 680, 101, 41))
+        self.kill_button.setGeometry(QtCore.QRect(590, 680, 101, 41))
         self.kill_button.setObjectName("kill_button")
 
         self.nice_button = QtWidgets.QPushButton(self.centralwidget)
-        self.nice_button.setGeometry(QtCore.QRect(380, 680, 101, 41))
+        self.nice_button.setGeometry(QtCore.QRect(480, 680, 101, 41))
         self.nice_button.setObjectName("nice_button")
 
         self.pid_input = QtWidgets.QLineEdit(self.centralwidget)
-        self.pid_input.setGeometry(QtCore.QRect(322, 680, 51, 41))
+        self.pid_input.setGeometry(QtCore.QRect(420, 680, 51, 41))
         self.pid_input.setObjectName("pid_input")
-        self.pid_input.setValidator(QtGui.QIntValidator())
+        self.pid_input.setValidator(QtGui.QIntValidator(0, MAX_PID))
 
         self.pid_label = QtWidgets.QLabel(self.centralwidget)
-        self.pid_label.setGeometry(QtCore.QRect(290, 690, 31, 23))
+        self.pid_label.setGeometry(QtCore.QRect(390, 690, 31, 23))
         self.pid_label.setObjectName("pid_label")
 
         font = QtGui.QFont()
@@ -373,23 +374,23 @@ class Ui_MainWindow(object):
         self.line.setObjectName("line")
 
         self.recv_label = QtWidgets.QLabel(self.centralwidget)
-        self.recv_label.setGeometry(QtCore.QRect(320, 5, 31, 23))
+        self.recv_label.setGeometry(QtCore.QRect(420, 5, 31, 23))
         self.recv_label.setFont(font)
         self.recv_label.setObjectName("recv_label")
 
         self.send_label = QtWidgets.QLabel(self.centralwidget)
-        self.send_label.setGeometry(QtCore.QRect(460, 5, 31, 23))
+        self.send_label.setGeometry(QtCore.QRect(560, 5, 31, 23))
         self.send_label.setFont(font)
         self.send_label.setObjectName("send_label")
 
         self.recv_speed_label = QtWidgets.QLabel(self.centralwidget)
-        self.recv_speed_label.setGeometry(QtCore.QRect(360, 5, 101, 23))
+        self.recv_speed_label.setGeometry(QtCore.QRect(460, 5, 101, 23))
         self.recv_speed_label.setFont(font)
         self.recv_speed_label.setText("")
         self.recv_speed_label.setObjectName("recv_speed_label")
 
         self.send_speed_label = QtWidgets.QLabel(self.centralwidget)
-        self.send_speed_label.setGeometry(QtCore.QRect(500, 5, 101, 23))
+        self.send_speed_label.setGeometry(QtCore.QRect(600, 5, 101, 23))
         self.send_speed_label.setFont(font)
         self.send_speed_label.setText("")
         self.send_speed_label.setObjectName("send_speed_label")
@@ -402,7 +403,7 @@ class Ui_MainWindow(object):
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 600, 28))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 700, 28))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -421,7 +422,7 @@ class Ui_MainWindow(object):
         self.pid_label.setText(_translate("MainWindow", "PID"))
         self.kill_button.setText(_translate("MainWindow", "结束进程"))
         self.nice_button.setText(_translate("MainWindow", "设置 nice"))
-        self.label.setText(_translate("MainWindow", "Designed by 董正 in PyQt5"))
+        self.label.setText(_translate("MainWindow", "Developed by Dong Zheng"))
         self.recv_label.setText(_translate("MainWindow", "接收"))
         self.send_label.setText(_translate("MainWindow", "发送"))
 
@@ -440,12 +441,37 @@ class Ui_MainWindow(object):
         if euid>=1000 and euid<=60000:
             os.kill(pid, 15)
             QtWidgets.QMessageBox.information(self.centralwidget, "结束进程", "{} ({}) 已结束".format(name, pid))
-            print("Terminated {}".format(pid))
+            # print("Terminated {}".format(pid))
         else:
             QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "无法结束系统用户的进程\n该进程的有效用户为 {}".format(user))
     
     def set_nice(self):
-        pass
+        pid=self.pid_input.text()
+
+        if not pid.isdigit():
+            return
+        pid=int(pid)
+
+        name, euid, user=get_process_name_euid_user(pid)
+        if euid==65534:
+            QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "无该进程")
+            return
+
+        if euid>=1000 and euid<=60000:
+            nice, ok=QtWidgets.QInputDialog.getInt(self.centralwidget, "设置 {} ({}) 的 nice".format(name, pid), "输入 nice 值 [-20, 19]")
+            if ok:
+                while nice < -20 or nice > 19:
+                    QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "nice 的范围是 [-20, 19]")
+                    nice, ok=QtWidgets.QInputDialog.getInt(self.centralwidget, "设置 {} ({}) 的 nice".format(name, pid), "输入 nice 值 [-20, 19]")
+                    if not ok:
+                        return
+                
+                with os.popen("renice {} {} 2>&1".format(nice, pid)) as pipe:
+                    out=pipe.read()
+                QtWidgets.QMessageBox.information(self.centralwidget, "设置 nice", out)
+        else:
+            QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "无法设置系统用户的进程\n该进程的有效用户为 {}".format(user))
+
 
     def set_table_contents(self):
         # 这里要先关闭排序，更新数据之后再开启排序，否则表格数据就不对，玄学问题 https://bbs.csdn.net/topics/390608058
