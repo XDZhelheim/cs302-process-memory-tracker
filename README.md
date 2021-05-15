@@ -79,7 +79,7 @@ Further (not must-required but we will implement for the software):
 * [x] Show the owner of each process
 * [x] Button: ~~kill~~ terminate selected process (cannot kill important system processes)
 * [x] Button & dialog: set `nice` value of selected process
-* [ ] Deploy executable files & make a release of the software
+* [x] Deploy executable files & make a release of the software
 
 If have time:
 
