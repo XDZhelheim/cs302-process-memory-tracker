@@ -56,7 +56,7 @@ We are all familiar to `Windows Task Manager`, and our expectation is to develop
 * [PyQt5 Doc](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 * [Qt Designer Manual](https://doc.qt.io/qt-5/qtdesigner-manual.html)
 
-##### Design Plan & TODO List (by 5.14)
+##### Design Plan & TODO List (by 5.15)
 
 Must implement (this project required):
 
@@ -75,9 +75,9 @@ Further (not must-required but we will implement for the software):
 * [x] Show CPU usage of each process
 * [x] Show IO usage of each process
 * [x] Show network usage of ~~each process~~ system
-* [ ] Identify system process and user process for protection
-* [ ] Show the owner of each process
-* [ ] Button: kill selected process (cannot kill important system processes)
+* [x] Identify system process and user process for protection
+* [x] Show the owner of each process
+* [x] Button: ~~kill~~ terminate selected process (cannot kill important system processes)
 * [ ] Button & dialog: set `nice` value of selected process
 * [ ] Deploy executable files & make a release of the software
 

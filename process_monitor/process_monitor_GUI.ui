@@ -203,6 +203,45 @@
      <string/>
     </property>
    </widget>
+   <widget class="QPushButton" name="nice_button">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>680</y>
+      <width>101</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>设置 nice</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="pid_input">
+    <property name="geometry">
+     <rect>
+      <x>322</x>
+      <y>680</y>
+      <width>51</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="pid_label">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>690</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PID</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
