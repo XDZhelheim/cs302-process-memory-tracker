@@ -13,6 +13,65 @@ CPU_USAGE_SAMPLING_INTERVAL=0.5 # CPU 时间的采样间隔 (s)
 PAGE_SIZE=int(os.sysconf("SC_PAGE_SIZE")/1024) # 4096 bytes / 1024 = 4 KiB
 # LOGICAL_CORES=int(os.popen("cat /proc/cpuinfo| grep \"processor\"| wc -l").read()) # CPU 逻辑核心数
 
+uid_user_dict={}
+
+def set_uid_user_dict():
+    global uid_user_dict
+
+    passwd_path="/etc/passwd"
+    
+    with open(passwd_path, "r") as passwd:
+        lines=passwd.readlines()
+
+    for line in lines:
+        line=line.split(":")
+        uid=int(line[2])
+        user=line[0]
+
+        uid_user_dict[uid]=user
+
+def get_process_name_euid_user(pid: int) -> tuple:
+    """
+    Returns:
+        (process name, effective uid, user name)
+
+    ---
+
+    ```x
+    UID/GID	                Purpose	                Defined By	    Listed in
+    0	                    root user	            Linux	        /etc/passwd + nss-systemd
+    1…4	                    System users	        Distributions	/etc/passwd
+    5	                    tty group	            systemd	        /etc/passwd
+    6…999	                System users	        Distributions	/etc/passwd
+    1000…60000	            Regular users	        Distributions	/etc/passwd + LDAP/NIS/…
+    60001…60513	            Human Users (homed)	    systemd	        nss-systemd
+    60514…61183	            Unused	 	 
+    61184…65519	            Dynamic service users	systemd	        nss-systemd
+    65520…65533	            Unused	 	 
+    65534	                nobody user	            Linux	        /etc/passwd + nss-systemd
+    65535	                16bit (uid_t) -1	    Linux	 
+    65536…524287	        Unused	 	 
+    524288…1879048191	    Container UID ranges	systemd	        nss-systemd
+    1879048192…2147483647	Unused	 	 
+    2147483648…4294967294	HIC SVNT LEONES	 	 
+    4294967295	            32bit (uid_t) -1	    Linux
+    ```
+    """
+    global uid_user_dict
+
+    status_path=os.path.join(PROC_PATH, str(pid), "status")
+
+    try:
+        with open(status_path, "r") as status:
+            lines=status.readlines()
+            name=lines[0].split()[1]
+            euid=int(lines[8].split()[1])
+            user=uid_user_dict[euid]
+    except FileNotFoundError:
+        return ("terminated", 65534, "nobody")
+
+    return (name, euid, user)
+
 def get_RSS(pid: int) -> int:
     """
     - RSS（Resident set size），使用top命令可以查询到，是最常用的内存指标，表示进程占用的物理内存大小。但是，将各进程的RSS值相加，通常会超出整个系统的内存消耗，这是因为RSS中包含了各进程间共享的内存。
@@ -45,16 +104,6 @@ def get_RSS(pid: int) -> int:
         return 0
 
     return pages*PAGE_SIZE # RSS (KiB) resident set size
-
-def get_process_name(pid: int) -> str:
-    status_path=os.path.join(PROC_PATH, str(pid), "status")
-    try:
-        with open(status_path, "r") as status:
-            name=status.readline().split()[1] # first line, the format is "Name: xxx"
-    except FileNotFoundError:
-        return ""
-
-    return name
 
 def get_total_cpu_time() -> int:
     cpu_stat_path=os.path.join(PROC_PATH, "stat")
@@ -172,12 +221,12 @@ def get_process_io_usage_dict() -> dict:
 
         pid=int(pid)
 
-        if (pid_io_usage_dict[pid][0]==-1024):
-            continue
-
-        read_write=get_process_io_usage(pid)
-
         try:
+            if (pid_io_usage_dict[pid][0]==-1024):
+                continue
+
+            read_write=get_process_io_usage(pid)
+        
             pid_io_usage_dict[pid]=(read_write[0]-pid_io_usage_dict[pid][0], read_write[1]-pid_io_usage_dict[pid][1])
         except KeyError:
             pass
@@ -244,8 +293,18 @@ def get_processes_list() -> list:
 
         pid=int(pid)
 
+        name, _, user=get_process_name_euid_user(pid)
+
         try:
-            ps_list.append([pid, get_process_name(pid), get_RSS(pid)/1024, round(pid_cpu_usage_dict[pid], 2), round(pid_io_usage_dict[pid][0]/1024, 2), round(pid_io_usage_dict[pid][1]/1024, 2)]) # to MiB
+            ps_list.append([
+                pid,
+                name,
+                user,
+                get_RSS(pid)/1024, # to MiB
+                round(pid_cpu_usage_dict[pid], 2),
+                round(pid_io_usage_dict[pid][0]/1024, 2),
+                round(pid_io_usage_dict[pid][1]/1024, 2)
+                ])
         except KeyError:
             pass
 
@@ -285,6 +344,19 @@ class Ui_MainWindow(object):
         self.kill_button = QtWidgets.QPushButton(self.centralwidget)
         self.kill_button.setGeometry(QtCore.QRect(490, 680, 101, 41))
         self.kill_button.setObjectName("kill_button")
+
+        self.nice_button = QtWidgets.QPushButton(self.centralwidget)
+        self.nice_button.setGeometry(QtCore.QRect(380, 680, 101, 41))
+        self.nice_button.setObjectName("nice_button")
+
+        self.pid_input = QtWidgets.QLineEdit(self.centralwidget)
+        self.pid_input.setGeometry(QtCore.QRect(322, 680, 51, 41))
+        self.pid_input.setObjectName("pid_input")
+        self.pid_input.setValidator(QtGui.QIntValidator())
+
+        self.pid_label = QtWidgets.QLabel(self.centralwidget)
+        self.pid_label.setGeometry(QtCore.QRect(290, 690, 31, 23))
+        self.pid_label.setObjectName("pid_label")
 
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -340,13 +412,40 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        self.kill_button.clicked.connect(self.kill_pid)
+        self.nice_button.clicked.connect(self.set_nice)
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "进程监视器"))
+        self.pid_label.setText(_translate("MainWindow", "PID"))
         self.kill_button.setText(_translate("MainWindow", "结束进程"))
+        self.nice_button.setText(_translate("MainWindow", "设置 nice"))
         self.label.setText(_translate("MainWindow", "Designed by 董正 in PyQt5"))
         self.recv_label.setText(_translate("MainWindow", "接收"))
         self.send_label.setText(_translate("MainWindow", "发送"))
+
+    def kill_pid(self):
+        pid=self.pid_input.text()
+
+        if not pid.isdigit():
+            return
+        pid=int(pid)
+
+        name, euid, user=get_process_name_euid_user(pid)
+        if euid==65534:
+            QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "无该进程")
+            return
+
+        if euid>=1000 and euid<=60000:
+            os.kill(pid, 15)
+            QtWidgets.QMessageBox.information(self.centralwidget, "结束进程", "{} ({}) 已结束".format(name, pid))
+            print("Terminated {}".format(pid))
+        else:
+            QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "无法结束系统用户的进程\n该进程的有效用户为 {}".format(user))
+    
+    def set_nice(self):
+        pass
 
     def set_table_contents(self):
         # 这里要先关闭排序，更新数据之后再开启排序，否则表格数据就不对，玄学问题 https://bbs.csdn.net/topics/390608058
@@ -359,7 +458,7 @@ class Ui_MainWindow(object):
         self.table.setRowCount(len(ps_list))
 
         # set column name
-        self.table.setHorizontalHeaderLabels(["PID", "进程名", "内存 MiB", "%CPU", "读取 KiB/s", "写入 KiB/s"])
+        self.table.setHorizontalHeaderLabels(["PID", "进程名", "有效用户", "内存 MiB", "%CPU", "读取 KiB/s", "写入 KiB/s"])
 
         for i in range(len(ps_list)):
             ps=ps_list[i]
@@ -395,6 +494,8 @@ class UpdateData(QtCore.QThread):
             time.sleep(REFRESH_INTERVAL)
 
 if __name__ == "__main__":
+    set_uid_user_dict()
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
