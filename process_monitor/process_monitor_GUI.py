@@ -5,6 +5,8 @@ import os
 import time
 import datetime
 
+from queue import Queue
+
 PROC_PATH="/proc"
 
 REFRESH_INTERVAL=3 # 数据刷新的时间间隔 (s)
@@ -15,6 +17,7 @@ PAGE_SIZE=int(os.sysconf("SC_PAGE_SIZE")/1024) # 4096 bytes / 1024 = 4 KiB
 MAX_PID=int(open("/proc/sys/kernel/pid_max").read())
 
 uid_user_dict={}
+message_queue=Queue()
 
 def set_uid_user_dict():
     global uid_user_dict
@@ -478,7 +481,8 @@ class Ui_MainWindow(object):
         # 默认按字典序，解决办法: https://stackoverflow.com/questions/11938459/sorting-in-pyqt-tablewidget; https://blog.csdn.net/null_plus/article/details/90513874
         self.table.setSortingEnabled(False)
 
-        ps_list=get_processes_list()
+        global message_queue
+        ps_list=message_queue.get()
 
         self.table.setColumnCount(len(ps_list[0]))
         self.table.setRowCount(len(ps_list))
@@ -512,12 +516,16 @@ class Ui_MainWindow(object):
 
 # thread to update table data
 class UpdateData(QtCore.QThread):
-    update = QtCore.pyqtSignal(str)
+    update=QtCore.pyqtSignal(str)
 
     def run(self):
+        global message_queue
         while True:
+            ps_list=get_processes_list()
+            message_queue.put(ps_list)
+
             self.update.emit("")  # 发射信号
-            time.sleep(REFRESH_INTERVAL)
+            self.sleep(REFRESH_INTERVAL)
 
 if __name__ == "__main__":
     set_uid_user_dict()
