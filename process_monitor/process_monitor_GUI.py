@@ -65,6 +65,7 @@ def get_process_name_euid_user(pid: int) -> tuple:
 
     status_path=os.path.join(PROC_PATH, str(pid), "status")
 
+    euid=65534
     try:
         with open(status_path, "r") as status:
             lines=status.readlines()
@@ -73,6 +74,11 @@ def get_process_name_euid_user(pid: int) -> tuple:
             user=uid_user_dict[euid]
     except FileNotFoundError:
         return ("terminated", 65534, "nobody")
+    except KeyError:
+        if euid>=60001 and euid<=60513:
+            user="Human Users (homed)"
+        elif euid>=61184 and euid<=65519:
+            user="Dynamic Service User"
 
     return (name, euid, user)
 
