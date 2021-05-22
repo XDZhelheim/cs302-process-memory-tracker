@@ -349,7 +349,9 @@ class Ui_MainWindow(object):
         self.table.horizontalHeader().setVisible(True)
         self.table.horizontalHeader().setSortIndicatorShown(True)
         self.table.verticalHeader().setVisible(False)
+
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) # disable editing table
+        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows) # select whole row
 
         self.kill_button = QtWidgets.QPushButton(self.centralwidget)
         self.kill_button.setGeometry(QtCore.QRect(590, 680, 101, 41))
@@ -439,8 +441,12 @@ class Ui_MainWindow(object):
         pid=self.pid_input.text()
 
         if not pid.isdigit():
-            return
-        pid=int(pid)
+            selected_pid=self.table.selectedItems()[0].text()
+            if not selected_pid:
+                return
+            pid=int(selected_pid)
+        else:
+            pid=int(pid)
 
         name, euid, user=get_process_name_euid_user(pid)
         if euid==65534:
@@ -458,8 +464,12 @@ class Ui_MainWindow(object):
         pid=self.pid_input.text()
 
         if not pid.isdigit():
-            return
-        pid=int(pid)
+            selected_pid=self.table.selectedItems()[0].text()
+            if not selected_pid:
+                return
+            pid=int(selected_pid)
+        else:
+            pid=int(pid)
 
         name, euid, user=get_process_name_euid_user(pid)
         if euid==65534:
@@ -480,7 +490,6 @@ class Ui_MainWindow(object):
                 QtWidgets.QMessageBox.information(self.centralwidget, "设置 nice", out)
         else:
             QtWidgets.QMessageBox.critical(self.centralwidget, "错误", "无法设置系统用户的进程\n该进程的有效用户为 {}".format(user))
-
 
     def set_table_contents(self):
         # 这里要先关闭排序，更新数据之后再开启排序，否则表格数据就不对，玄学问题 https://bbs.csdn.net/topics/390608058
