@@ -56,7 +56,7 @@ We are all familiar to `Windows Task Manager`, and our expectation is to develop
 * [PyQt5 Doc](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 * [Qt Designer Manual](https://doc.qt.io/qt-5/qtdesigner-manual.html)
 
-##### Design Plan & TODO List (by 5.15)
+##### Design Plan & TODO List (by 5.22)
 
 Must implement (this project required):
 
@@ -85,7 +85,7 @@ If have time:
 
 * [ ] Show these information of each process' child **threads**
 * [ ] Feature: search specific process
-* [ ] Beautify GUI
+* [x] Beautify GUI
 * [ ] Integrate Task2 & Task3 (make a GUI of task2 and task3)
 
 ##### Demo (5.11)
