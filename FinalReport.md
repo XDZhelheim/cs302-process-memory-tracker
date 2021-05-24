@@ -689,6 +689,53 @@ void
 __libc_free (void *mem)
 ```
 
+Then we got the implementations : 
+
+```C
+extern void *__libc_malloc(size_t size);
+extern void *__libc_realloc(void *ptr, size_t size);
+extern void *__libc_calloc(size_t nmemb, size_t size);
+extern void __libc_free(void *ptr);
+
+void *malloc(size_t size)
+{
+    void *ptr = __libc_malloc(size);
+
+    memory_log_record(ALLOCATE, ptr, size, 1);
+
+    return ptr;
+}
+
+void *realloc(void *ptr, size_t size)
+{
+    void *newptr = __libc_realloc(ptr, size);
+
+    memory_log_record(RELEASE, ptr, 0, 0);
+    memory_log_record(ALLOCATE, newptr, size, 1);
+
+    return newptr;
+}
+
+void *calloc(size_t nmemb, size_t size)
+{
+    void *ptr = __libc_calloc(nmemb, size);
+
+    memory_log_record(ALLOCATE, ptr, size, nmemb);
+
+    return ptr;
+}
+
+void free(void *ptr)
+{
+    if (ptr)
+    {
+        memory_log_record(RELEASE, ptr, 0, 0);
+    }
+
+    __libc_free(ptr);
+}
+```
+
 We redirect common function and implement it by generating log and underlying implementation, thus, we can get the overall memory information of program.
 
 Note: We also have `new` and `delete` in `C++`. We does not take these into consideration for that they are implement by `C` functions above, thus, these information will also be observed.
@@ -736,6 +783,108 @@ extern int _IO_file_close_it (FILE *);
 extern FILE* _IO_popen (const char*, const char*) __THROW;
 
 #define _IO_pclose _IO_fclose
+```
+
+Then we got the implementations : 
+
+```C
+extern FILE *_IO_fopen(const char *filename, const char *mode);
+extern FILE *_IO_file_fopen(FILE *stream, const char *filename, const char *mode, int);
+extern int _IO_file_close_it(FILE *stream);
+extern int _IO_fclose(FILE *stream);
+
+extern FILE *_IO_popen(const char *command, const char *nodes) __THROW;
+
+FILE *fopen(const char *filename, const char *mode)
+{
+    log_enable(false);
+
+    FILE *f = _IO_fopen(filename, mode);
+
+    log_enable(true);
+
+    if (f)
+    {
+        file_handler_log_record(ALLOCATE, f, filename, _FILE_);
+    }
+
+    return f;
+}
+
+FILE *freopen(const char *filename, const char *mode, FILE *stream)
+{
+    log_enable(false);
+
+    _IO_file_close_it(stream);
+
+    log_enable(true);
+
+    if (stream)
+    {
+        file_handler_log_record(RELEASE, stream, NULL, _FILE_);
+    }
+
+    log_enable(false);
+
+    FILE *f = _IO_file_fopen(stream, filename, mode, 1);
+
+    log_enable(true);
+
+    if (f)
+    {
+        file_handler_log_record(ALLOCATE, f, filename, _FILE_);
+    }
+
+    return f;
+}
+
+int fclose(FILE *stream)
+{
+    log_enable(false);
+
+    int r = _IO_fclose(stream);
+
+    log_enable(true);
+
+    if (stream)
+    {
+        file_handler_log_record(RELEASE, stream, NULL, _FILE_);
+    }
+
+    return r;
+}
+
+FILE *popen(const char *command, const char *modes)
+{
+    log_enable(false);
+
+    FILE *p = _IO_popen(command, modes);
+
+    log_enable(true);
+
+    if (p)
+    {
+        file_handler_log_record(ALLOCATE, p, command, _PIPE_);
+    }
+
+    return p;
+}
+
+int pclose(FILE *stream)
+{
+    log_enable(false);
+
+    int r = _IO_fclose(stream);
+
+    log_enable(true);
+
+    if (stream)
+    {
+        file_handler_log_record(RELEASE, stream, NULL, _PIPE_);
+    }
+
+    return r;
+}
 ```
 
 Similarly to that in memory part.
@@ -853,7 +1002,73 @@ public:
 1. memory logging
 
 ```C
-void memory_log_record(int type, void *ptr, size_t size, size_t block);
+void memory_log_record(int type, void *ptr, size_t size, size_t block)
+{
+    if (log_enabled())
+    {
+        log_enable(false);
+
+        if (type)
+        {
+            size_t s = size * block;
+            memory_node *node = new memory_node(ptr, size, block);
+
+            if (!node->valid_memory_allocation())
+            {
+                delete node;
+                log_enable(true);
+                return;
+            }
+
+            memory_map[ptr] = node;
+
+            if (block == 1)
+            {
+                fprintf(log_file, "%s Allocate memory at %p size %ld\n", node->get_trace()->get_trace_time(), ptr, size);
+                fprintf(stdout, "\033[31;1mInfo\033[0m: %s Allocate memory at %p size %ld\n", node->get_trace()->get_trace_time(), ptr, size);
+            }
+            else
+            {
+                fprintf(log_file, "%s Allocate memory at %p with %ld block(s) of size %ld\n", node->get_trace()->get_trace_time(), ptr, block, size);
+                fprintf(stdout, "\033[31;1mInfo\033[0m: %s Allocate memory at %p with %ld block(s) of size %ld\n", node->get_trace()->get_trace_time(), ptr, block, size);
+            }
+            memory_allocate++;
+
+            memory_size_allocate += s;
+            current_memory_size += s;
+            if (current_memory_size > max_memory_size)
+            {
+                max_memory_size = current_memory_size;
+            }
+        }
+        else
+        {
+            size_t s = 0;
+            memory_node *node = memory_map[ptr];
+
+            memory_map.erase(ptr);
+
+            if (node != NULL)
+            {
+                s = node->get_block() * node->get_size();
+            }
+            else
+            {
+                log_enable(true);
+                return;
+            }
+
+            fprintf(log_file, "%s Release  memory at %p\n", get_local_time(), ptr);
+            fprintf(stdout, "\033[31;1mInfo\033[0m: %s Release  memory at %p\n", get_local_time(), ptr);
+            memory_release++;
+
+            memory_size_release += s;
+            current_memory_size -= s;
+        }
+
+        log_enable(true);
+    }
+}
 ```
 
 We need to clear out the memory allocation during `printf` and `puts`, thus we filter pattern `_IO_file` out in stack trace, also `C++` file IO with pattern `_Ios_Openmode`.
@@ -863,7 +1078,41 @@ Then, we log about time, operation, pointer position and size if allocation. It 
 2. file handler logging
 
 ```C
-void file_handler_log_record(int type, FILE *f, const char *filename, int ftype);
+void file_handler_log_record(int type, FILE *f, const char *fname, int ftype)
+{
+    if (log_enabled())
+    {
+        log_enable(false);
+
+        if (type)
+        {
+            file_handler_node *&node = file_handler_map[f];
+            node = new file_handler_node(fname, f, ftype);
+
+            fprintf(log_file, "%s %s %s at %p %s : %s\n", node->get_trace()->get_trace_time(), types[ftype].type, types[ftype].open_command, (void *)f, types[ftype].name_type, fname);
+            fprintf(stdout, "\033[31;1mInfo\033[0m: %s %s %s at %p %s : %s\n", node->get_trace()->get_trace_time(), types[ftype].type, types[ftype].open_command, (void *)f, types[ftype].name_type, fname);
+            file_handler_allocate++;
+        }
+        else
+        {
+            file_handler_node *node = file_handler_map[f];
+
+            file_handler_map.erase(f);
+
+            if (node == NULL)
+            {
+                log_enable(true);
+                return;
+            }
+
+            fprintf(log_file, "%s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);
+            fprintf(stdout, "\033[31;1mInfo\033[0m: %s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);
+            file_handler_release++;
+        }
+
+        log_enable(true);
+    }
+}
 ```
 
 This part, we distinguish **file** and **pipe**, and, in result screenshot, it is easy to find.
@@ -907,6 +1156,30 @@ We have three flags for logging `started` , `enabled` , `finished` .
 
 `log_enabled` gives the status of logging as `started && enabled && !finished` which controls whether log or not.
 
+5. some usable functions
+
+`get_local_time` return local time with readable format, it is generally string of length 34 as `Mon May 24 21:12:10.299045976 2021` with accuracy to nanoseconds.
+
+```C
+char *get_local_time(void)
+{
+    char *timing = new char[35];
+
+    timespec t;
+    clock_gettime(CLOCK_REALTIME, &t);
+
+    char *curr = ctime(&t.tv_sec);
+    curr[strlen(curr) - 1] = '\0';
+
+    strncpy(timing, curr, 19);
+    timing[19] = '.';
+    sprintf(timing + 20, "%09ld", t.tv_nsec);
+    strcpy(timing + 29, curr + 19);
+    
+    return timing;
+}
+```
+
 #### Some tests
 
 | File      | Description                           |
@@ -931,7 +1204,7 @@ The main reference for this project is [heapusage](https://github.com/d99kris/he
 
 #### Conclusion
 
-Task 2 and task 3 contains much more lines of code, thus, we only contains prototypes of function to explain, the implementations are in `src` folder. In implementation, `redirection` is the core part of the program which gives information from the running program and `logging` shows information in a beautiful CLI way.
+Task 2 and task 3 contains much more lines of code, thus, we only contains implementation of some functions and prototypes of other simple functions to explain, the prototypes are in `inc` folder, the implementations are in `src` folder. In implementation, `redirection` is the core part of the program which gives information from the running program and `logging` shows information in a beautiful CLI way.
 
 ## Future Direction
 
