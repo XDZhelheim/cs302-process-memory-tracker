@@ -35,13 +35,15 @@ void file_handler_log_record(int type, FILE *f, const char *fname, int ftype)
         }
         else
         {
-            if (file_handler_map[f] == NULL)
+            file_handler_node *node = file_handler_map[f];
+
+            file_handler_map.erase(f);
+
+            if (node == NULL)
             {
                 log_enable(true);
                 return;
             }
-
-            file_handler_map.erase(f);
 
             fprintf(log_file, "%s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);
             fprintf(stdout, "\033[31;1mInfo\033[0m: %s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);

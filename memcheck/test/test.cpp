@@ -1,5 +1,9 @@
+#include <fstream>
+#include <stdio.h>
+
 int main()
 {
     int *a = new int[10];
-    // delete[] a;
+    
+    std::ifstream f("Makefile");
 }

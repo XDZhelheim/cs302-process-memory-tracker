@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 int main(void)
 {
@@ -15,6 +14,6 @@ int main(void)
     printf("1234\n");
     printf("%p\n", f);
     fflush(stdout);
-    fclose(f);
+    // fclose(f);
     return 0;
 }

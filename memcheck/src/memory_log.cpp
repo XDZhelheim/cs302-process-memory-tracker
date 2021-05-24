@@ -67,12 +67,17 @@ void memory_log_record(int type, void *ptr, size_t size, size_t block)
             size_t s = 0;
             memory_node *node = memory_map[ptr];
 
+            memory_map.erase(ptr);
+
             if (node != NULL)
             {
                 s = node->get_block() * node->get_size();
             }
-
-            memory_map.erase(ptr);
+            else
+            {
+                log_enable(true);
+                return;
+            }
 
             fprintf(log_file, "%s Release  memory at %p\n", get_local_time(), ptr);
             fprintf(stdout, "\033[31;1mInfo\033[0m: %s Release  memory at %p\n", get_local_time(), ptr);

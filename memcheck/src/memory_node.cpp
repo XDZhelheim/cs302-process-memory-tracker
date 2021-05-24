@@ -2,12 +2,13 @@
 #include "memory_node.h"
 #include <stdio.h>
 
-#define PATTERN_SIZE 1
+#define PATTERN_SIZE 2
 
-const char *pattern[PATTERN_SIZE] = {"_IO_file"};
+const char *pattern[PATTERN_SIZE] = {"_IO_file", "_Ios_Openmode"};
 
 bool contains(const char *str, const char *s)
 {
+    fprintf(stdout, "%s\n", str);
     size_t strl = strlen(str);
     size_t sl = strlen(s);
     if (strl < sl)
