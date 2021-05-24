@@ -907,9 +907,31 @@ We have three flags for logging `started` , `enabled` , `finished` .
 
 `log_enabled` gives the status of logging as `started && enabled && !finished` which controls whether log or not.
 
+#### Some tests
+
+| File      | Description                           |
+| --------  | ------------------------------------- |
+| line.cpp  | check `C++` class                     |
+| mat.c     | check two dimensional array in `C`    |
+| mat.cpp   | check two dimensional array in `C++`  |
+| pipe.c    | check `pipe` operation                |
+| test_py   | check `python` compatibility          |
+| test.c    | combination checks in `C`             |
+| test.cpp  | combination checks in `C++`           |
+
+#### script
+
+`run` : simplify running command, it is the same for `./run ./test_c` and ``LD_PRELOAD=`pwd`/libmemory_check.so ./test_c``
+
+#### reference
+
+The folder `ref` contains some reference functions for this project, like `backtrace` , `backtrace_symbols` and redirections.
+
+The main reference for this project is [heapusage](https://github.com/d99kris/heapusage)
+
 #### Conclusion
 
-`Redirection` is the core part of the program and `Logging` shows information.
+Task 2 and task 3 contains much more lines of code, thus, we only contains prototypes of function to explain, the implementations are in `src` folder. In implementation, `redirection` is the core part of the program which gives information from the running program and `logging` shows information in a beautiful CLI way.
 
 ## Future Direction
 
