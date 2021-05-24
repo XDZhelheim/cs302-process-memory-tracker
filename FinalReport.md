@@ -48,11 +48,67 @@ Now it is finished and released at GitHub: https://github.com/XDZhelheim/cs302-p
 
 Therefore, we have completed all we wanted to do in our design document, making **Process Monitor** a useful and robust software.
 
-But in the "If have time" section, there are still some functions not done. It is easy to collect information about child threads, but it is hard to design a concise GUI to show this. If we put threads info into it, the GUI will be clumsy. In addition, the info of threads is less useful, and also, `Windows Task Manager` does not have it either. For the search function, we do not have enough time to do this. And for the GUI of task 2 and 3, we have already made a very beautiful stack trace log in CLI, so there is no need to migrate it to GUI, showing the same information.
+But in the "If have time" section, there are still some functions not done. It is easy to collect information about child threads, but it is hard to design a concise GUI to show this. If we put threads info into it, the GUI will be clumsy. In addition, the info of threads is less useful, and also, `Windows Task Manager` does not have it either. For the search function, we do not have enough time to do this.
 
 ### Task 2 & 3
 
+Our goal in Task 2 & 3 is to give realtime memory and file handler operations and, after the program finishes, we need to determin whether there is memory and file handler not released in the program and gives out the stack trace of suspicious code.
 
+Therefore, in the result, we finished it by producing a `shared object` in `linux` called `libmemory_check.so`, we can use this by command `LD_PRELOAD=<path to build dir>/libmemory_check.so <command>`. And it generates details we need.
+
+A sample as follows:
+
+```C
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+int main(void)
+{
+    free(malloc(100));
+    malloc(100);
+    FILE *f = fopen("./Makefile", "rb");
+    printf("1234\n");
+    printf("%p\n", f);
+    fflush(stdout);
+    f = freopen("./cmake_install.cmake", "rb", f);
+    printf("1234\n");
+    printf("%p\n", f);
+    fflush(stdout);
+    fclose(f);
+    return 0;
+}
+```
+
+We can see obviously that 1 memory block not released in both code and result:
+
+Program running:
+
+![](./images/running_log.jpg)
+
+Program finished:
+
+![](./images/finish_log.jpg)
+
+**What we achieved (TODO list in design doc)**:
+
+> Base requirements:
+> 
+> * [x] Implement the library in step 2.
+> * [x] Generate a script supporting running with the library.
+> * [x] Show memory operation and memory leak through `CLI`.
+> 
+> Improvements:
+> 
+> * [x] Show stack trace of memory operations which causes memory leak.
+> * [x] Generate a `CLI` with more detail information like `pid`.
+> * [x] Generate a `CLI` permitting normal running operation like `I/O`.
+> * [x] Gather information log at the end of output.
+> * [ ] Implement `GUI` for this task, using tools like `Qt`.
+
+Therefore, we have completed most we wanted to do in our design document, making **Memory Check** a easy using command line apllication.
+
+But in the "Improvements" section, about the GUI part, we have already made a very beautiful stack trace log in CLI, so there is no need to migrate it to GUI, showing the same information.
 
 ## Implementation
 
@@ -570,7 +626,290 @@ def set_nice(self):
 
 ### Task 2 & 3
 
+#### Environment
 
+* `Ubuntu 20.04.2 LTS x86_64` with `Linux 5.8.0-50-generic`
+* `gcc 9.3.0-1ubuntu2`
+* `g++ 9.3.0-1ubuntu2`
+* `make 4.2.1-1.2`
+* `cmake 3.16.3-1ubuntu1`
+
+#### Full Codes GitHub Link
+
+https://github.com/XDZhelheim/cs302-process-memory-tracker/tree/main/memcheck
+
+#### Guide to use
+
+Make sure you are in `memcheck` folder.
+
+```sh
+mkdir build
+cd build
+cmake ..
+make
+./run <exec> [args]
+```
+
+`<exec>` is path to an exectuable, relative path and absolute path both OK.
+
+#### Redirection
+
+Redirection is the most important part. We seperated it into two parts : memory and file handler.
+
+1. memory
+
+We need to redirect 4 commonly used function on memory management: 
+
+```C
+extern void *malloc (size_t __size) __THROW __attribute_malloc__
+     __attribute_alloc_size__ ((1)) __wur;
+
+extern void *realloc (void *__ptr, size_t __size)
+     __THROW __attribute_warn_unused_result__ __attribute_alloc_size__ ((2));
+     
+extern void *calloc (size_t __nmemb, size_t __size)
+     __THROW __attribute_malloc__ __attribute_alloc_size__ ((1, 2)) __wur;
+
+extern void free (void *__ptr) __THROW;
+```
+
+Which we can find its underlying implementation in package `glibc`. Path to those functions is `./malloc/malloc.c` :
+
+```C
+void *
+__libc_malloc (size_t bytes)
+
+void *
+__libc_realloc (void *oldmem, size_t bytes)
+
+void *
+__libc_calloc (size_t n, size_t elem_size)
+
+void
+__libc_free (void *mem)
+```
+
+We redirect common function and implement it by generating log and underlying implementation, thus, we can get the overall memory information of program.
+
+Note: We also have `new` and `delete` in `C++`. We does not take these into consideration for that they are implement by `C` functions above, thus, these information will also be observed.
+
+2. file handler
+
+File handler basically is also memory operations, but for its specific characteristics, we take it away from memory part.
+
+In this part, we take 5 functions into consideration:
+
+```C
+extern FILE *fopen (const char *__restrict __filename,
+		    const char *__restrict __modes) __wur;
+
+extern FILE *freopen (const char *__restrict __filename,
+		      const char *__restrict __modes,
+		      FILE *__restrict __stream) __wur;
+
+extern int fclose (FILE *__stream);
+
+extern FILE *popen (const char *__command, const char *__modes) __wur;
+
+extern int pclose (FILE *__stream);
+```
+
+Which we can find its underlying implementation in package `glibc`. Path to those functions is `./libio/iolibio.h` :
+
+```C
+extern FILE *_IO_fopen (const char*, const char*);
+
+#define _IO_freopen(FILENAME, MODE, FP) \
+  (_IO_file_close_it (FP), \
+   _IO_file_fopen (FP, FILENAME, MODE, 1))
+
+extern int _IO_fclose (FILE*);
+```
+
+Also, implementation of `_IO_freopen` in `./libio/libioP.h` :
+
+```C
+extern FILE* _IO_file_fopen (FILE *, const char *, const char *, int);
+
+extern int _IO_file_close_it (FILE *);
+
+extern FILE* _IO_popen (const char*, const char*) __THROW;
+
+#define _IO_pclose _IO_fclose
+```
+
+Similarly to that in memory part.
+
+We redirect common function and implement it by generating log and underlying implementation, thus, we can get the overall file handler information of program.
+
+Note: We also have `fstream` , `ifstream` and `ofstream` in `C++`. We does not take these into consideration for that they directly calls function in shared object, and also they does not give out a file handler to use, unlike that in memory part.
+
+#### Logging
+
+We need to initialize everything :
+
+```C
+void __attribute__((constructor)) nu_init(void);
+
+void log_start(void);
+
+void memory_log_init(void);
+
+void file_handler_log_init(void);
+```
+
+And after all, give out a conclusion :
+
+```C
+void __attribute__((destructor)) nu_fini(void);
+
+void log_finish(void);
+
+void memory_log_finish(void);
+
+void file_handler_log_finish(void);
+```
+
+These two functions complete head and tail of the program.
+
+In program recording, we need two class for storage : 
+
+```cpp
+class memory_node
+{
+private:
+    trace *tr;
+    void *ptr;
+    size_t size;
+    size_t block;
+
+public:
+    memory_node(void *p, size_t s, size_t b);
+
+    bool valid_memory_allocation();
+
+    trace *get_trace();
+
+    void *get_ptr();
+
+    size_t get_size();
+
+    size_t get_block();
+
+    ~memory_node();
+};
+```
+
+```cpp
+class file_handler_node
+{
+private:
+    trace *tr;
+    const char *name;
+    FILE *fh;
+    int ftype;
+
+public:
+    file_handler_node(const char *n, FILE *fh, int ftype);
+
+    trace *get_trace();
+
+    const char *get_name();
+
+    FILE *get_fh();
+
+    int get_ftype();
+
+    ~file_handler_node();
+};
+```
+
+Also, stack trace as follows:
+
+```cpp
+class trace
+{
+private:
+    void *back_trace[MAX_STACK_TRACE];
+    char **symbols;
+    int trace_size;
+    char *trace_time;
+
+public:
+    trace();
+
+    void **get_back_trace();
+
+    char **get_symbols();
+
+    int get_trace_size();
+
+    char *get_trace_time();
+
+    ~trace();
+};
+```
+
+1. memory logging
+
+```C
+void memory_log_record(int type, void *ptr, size_t size, size_t block);
+```
+
+We need to clear out the memory allocation during `printf` and `puts`, thus we filter pattern `_IO_file` out in stack trace, also `C++` file IO with pattern `_Ios_Openmode`.
+
+Then, we log about time, operation, pointer position and size if allocation. It is realtime and also gathered in running log of conclusion part.
+
+2. file handler logging
+
+```C
+void file_handler_log_record(int type, FILE *f, const char *filename, int ftype);
+```
+
+This part, we distinguish **file** and **pipe**, and, in result screenshot, it is easy to find.
+
+We log about time, type, operation, pointer position and filename or command if it is openning. It is also realtime and gathered in running log of conclusion part.
+
+3. stack trace
+
+Its API is provided in `/usr/include/execinfo.h` :
+
+```C
+extern int backtrace (void **__array, int __size) __nonnull ((1));
+
+extern char **backtrace_symbols (void *const *__array, int __size)
+     __THROW __nonnull ((1));
+```
+
+`backtrace` puts pointers of lines in `void **__array` and `backtrace_symbols` decode pointers into tags and bytes after tags in `executable` and `shared object` in `Assembly` language.
+
+Note: We use `objdump` to decode executable to assembly language.
+
+4. general logging
+
+```C
+int log_enabled(void);
+
+void log_enable(int en);
+
+void log_start(void);
+
+void log_finish(void);
+```
+
+We have three flags for logging `started` , `enabled` , `finished` .
+
+`log_enable` changes `enabled` for that `*print*` operations also need memory operation, so, we need to pass these.
+
+`log_start` changes `started` to `true` and do initialize operations for memory and file handler.
+
+`log_finish` changes `finished` to `true` and do finalize operations for memory and file handler.
+
+`log_enabled` gives the status of logging as `started && enabled && !finished` which controls whether log or not.
+
+#### Conclusion
+
+`Redirection` is the core part of the program and `Logging` shows information.
 
 ## Future Direction
 
@@ -586,5 +925,5 @@ def set_nice(self):
 | :------- | :---------- | ---------------------- |
 | 11813225 | WANG Yuchen | Task2 & Task3          |
 | 11812804 | DONG Zheng  | Task1: Process Monitor |
-| 11811305 | CUI Yusong  | Task2 & Task3          |
+| 11811305 | CUI Yusong  | Cui OS kernel          |
 
