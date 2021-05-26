@@ -746,7 +746,7 @@ The main reference for this project is [heapusage](https://github.com/d99kris/he
 
 #### Conclusion
 
-Task 2 and task 3 contains much more lines of code, thus, we only contains implementation of some functions and prototypes of other simple functions to explain, the prototypes are in `inc` folder, the implementations are in `src` folder. In implementation, `redirection` is the core part of the program which gives information from the running program and `logging` shows information in a beautiful CLI way.
+Task 2 and task 3 contains much more lines of code, thus, we only prototypes of functions to explain for they contains a large number of code to implement, the prototypes mentioned are in `inc` folder, the implementations of prototypes are in `src` folder. In implementation, `redirection` is the core part of the program which gives information from the running program and `logging` shows information in a beautiful CLI way.
 
 ## Future Direction
 
