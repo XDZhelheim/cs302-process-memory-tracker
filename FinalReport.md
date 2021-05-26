@@ -457,48 +457,13 @@ Redirection is the most important part. We separated it into two parts : memory 
    Then we got the implementations : 
 
    ```C
-   extern void *__libc_malloc(size_t size);
-   extern void *__libc_realloc(void *ptr, size_t size);
-   extern void *__libc_calloc(size_t nmemb, size_t size);
-   extern void __libc_free(void *ptr);
+   void *malloc(size_t size);
    
-   void *malloc(size_t size)
-   {
-       void *ptr = __libc_malloc(size);
+   void *realloc(void *ptr, size_t size);
    
-       memory_log_record(ALLOCATE, ptr, size, 1);
+   void *calloc(size_t nmemb, size_t size);
    
-       return ptr;
-   }
-   
-   void *realloc(void *ptr, size_t size)
-   {
-       void *newptr = __libc_realloc(ptr, size);
-   
-       memory_log_record(RELEASE, ptr, 0, 0);
-       memory_log_record(ALLOCATE, newptr, size, 1);
-   
-       return newptr;
-   }
-   
-   void *calloc(size_t nmemb, size_t size)
-   {
-       void *ptr = __libc_calloc(nmemb, size);
-   
-       memory_log_record(ALLOCATE, ptr, size, nmemb);
-   
-       return ptr;
-   }
-   
-   void free(void *ptr)
-   {
-       if (ptr)
-       {
-           memory_log_record(RELEASE, ptr, 0, 0);
-       }
-   
-       __libc_free(ptr);
-   }
+   void free(void *ptr);
    ```
 
    We redirect common function and implement it by generating log and underlying implementation, thus, we can get the overall memory information of program.
@@ -553,103 +518,15 @@ Redirection is the most important part. We separated it into two parts : memory 
    Then we got the implementations : 
 
    ```C
-   extern FILE *_IO_fopen(const char *filename, const char *mode);
-   extern FILE *_IO_file_fopen(FILE *stream, const char *filename, const char *mode, int);
-   extern int _IO_file_close_it(FILE *stream);
-   extern int _IO_fclose(FILE *stream);
+   FILE *fopen(const char *filename, const char *mode);
    
-   extern FILE *_IO_popen(const char *command, const char *nodes) __THROW;
+   FILE *freopen(const char *filename, const char *mode, FILE *stream);
    
-   FILE *fopen(const char *filename, const char *mode)
-   {
-       log_enable(false);
+   int fclose(FILE *stream);
    
-       FILE *f = _IO_fopen(filename, mode);
+   FILE *popen(const char *command, const char *modes);
    
-       log_enable(true);
-   
-       if (f)
-       {
-           file_handler_log_record(ALLOCATE, f, filename, _FILE_);
-       }
-   
-       return f;
-   }
-   
-   FILE *freopen(const char *filename, const char *mode, FILE *stream)
-   {
-       log_enable(false);
-   
-       _IO_file_close_it(stream);
-   
-       log_enable(true);
-   
-       if (stream)
-       {
-           file_handler_log_record(RELEASE, stream, NULL, _FILE_);
-       }
-   
-       log_enable(false);
-   
-       FILE *f = _IO_file_fopen(stream, filename, mode, 1);
-   
-       log_enable(true);
-   
-       if (f)
-       {
-           file_handler_log_record(ALLOCATE, f, filename, _FILE_);
-       }
-   
-       return f;
-   }
-   
-   int fclose(FILE *stream)
-   {
-       log_enable(false);
-   
-       int r = _IO_fclose(stream);
-   
-       log_enable(true);
-   
-       if (stream)
-       {
-           file_handler_log_record(RELEASE, stream, NULL, _FILE_);
-       }
-   
-       return r;
-   }
-   
-   FILE *popen(const char *command, const char *modes)
-   {
-       log_enable(false);
-   
-       FILE *p = _IO_popen(command, modes);
-   
-       log_enable(true);
-   
-       if (p)
-       {
-           file_handler_log_record(ALLOCATE, p, command, _PIPE_);
-       }
-   
-       return p;
-   }
-   
-   int pclose(FILE *stream)
-   {
-       log_enable(false);
-   
-       int r = _IO_fclose(stream);
-   
-       log_enable(true);
-   
-       if (stream)
-       {
-           file_handler_log_record(RELEASE, stream, NULL, _PIPE_);
-       }
-   
-       return r;
-   }
+   int pclose(FILE *stream);
    ```
 
    Similarly to that in memory part.
@@ -767,73 +644,7 @@ public:
 1. memory logging
 
    ```C
-   void memory_log_record(int type, void *ptr, size_t size, size_t block)
-   {
-       if (log_enabled())
-       {
-           log_enable(false);
-   
-           if (type)
-           {
-               size_t s = size * block;
-               memory_node *node = new memory_node(ptr, size, block);
-   
-               if (!node->valid_memory_allocation())
-               {
-                   delete node;
-                   log_enable(true);
-                   return;
-               }
-   
-               memory_map[ptr] = node;
-   
-               if (block == 1)
-               {
-                   fprintf(log_file, "%s Allocate memory at %p size %ld\n", node->get_trace()->get_trace_time(), ptr, size);
-                   fprintf(stdout, "\033[31;1mInfo\033[0m: %s Allocate memory at %p size %ld\n", node->get_trace()->get_trace_time(), ptr, size);
-               }
-               else
-               {
-                   fprintf(log_file, "%s Allocate memory at %p with %ld block(s) of size %ld\n", node->get_trace()->get_trace_time(), ptr, block, size);
-                   fprintf(stdout, "\033[31;1mInfo\033[0m: %s Allocate memory at %p with %ld block(s) of size %ld\n", node->get_trace()->get_trace_time(), ptr, block, size);
-               }
-               memory_allocate++;
-   
-               memory_size_allocate += s;
-               current_memory_size += s;
-               if (current_memory_size > max_memory_size)
-               {
-                   max_memory_size = current_memory_size;
-               }
-           }
-           else
-           {
-               size_t s = 0;
-               memory_node *node = memory_map[ptr];
-   
-               memory_map.erase(ptr);
-   
-               if (node != NULL)
-               {
-                   s = node->get_block() * node->get_size();
-               }
-               else
-               {
-                   log_enable(true);
-                   return;
-               }
-   
-               fprintf(log_file, "%s Release  memory at %p\n", get_local_time(), ptr);
-               fprintf(stdout, "\033[31;1mInfo\033[0m: %s Release  memory at %p\n", get_local_time(), ptr);
-               memory_release++;
-   
-               memory_size_release += s;
-               current_memory_size -= s;
-           }
-   
-           log_enable(true);
-       }
-   }
+   void memory_log_record(int type, void *ptr, size_t size, size_t block);
    ```
 
    We need to clear out the memory allocation during `printf` and `puts`, thus we filter pattern `_IO_file` out in stack trace, also `C++` file IO with pattern `_Ios_Openmode`.
@@ -843,41 +654,7 @@ public:
 2. file handler logging
 
    ```C
-   void file_handler_log_record(int type, FILE *f, const char *fname, int ftype)
-   {
-       if (log_enabled())
-       {
-           log_enable(false);
-   
-           if (type)
-           {
-               file_handler_node *&node = file_handler_map[f];
-               node = new file_handler_node(fname, f, ftype);
-   
-               fprintf(log_file, "%s %s %s at %p %s : %s\n", node->get_trace()->get_trace_time(), types[ftype].type, types[ftype].open_command, (void *)f, types[ftype].name_type, fname);
-               fprintf(stdout, "\033[31;1mInfo\033[0m: %s %s %s at %p %s : %s\n", node->get_trace()->get_trace_time(), types[ftype].type, types[ftype].open_command, (void *)f, types[ftype].name_type, fname);
-               file_handler_allocate++;
-           }
-           else
-           {
-               file_handler_node *node = file_handler_map[f];
-   
-               file_handler_map.erase(f);
-   
-               if (node == NULL)
-               {
-                   log_enable(true);
-                   return;
-               }
-   
-               fprintf(log_file, "%s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);
-               fprintf(stdout, "\033[31;1mInfo\033[0m: %s %s %s at %p\n", get_local_time(), types[ftype].type, types[ftype].close_command, (void *)f);
-               file_handler_release++;
-           }
-   
-           log_enable(true);
-       }
-   }
+   void file_handler_log_record(int type, FILE *f, const char *fname, int ftype);
    ```
 
    This part, we distinguish **file** and **pipe**, and, in result screenshot, it is easy to find.
