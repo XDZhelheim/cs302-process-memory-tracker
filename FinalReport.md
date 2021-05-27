@@ -742,7 +742,7 @@ public:
 
 The folder `ref` contains some reference functions for this project, like `backtrace` , `backtrace_symbols` and redirections.
 
-The main reference for this project is [heapusage](https://github.com/d99kris/heapusage)
+The main reference for this project is [heapusage](https://github.com/d99kris/heapusage).
 
 #### Conclusion
 
