@@ -15,9 +15,17 @@ add_library(memory_check SHARED ${SOURCE_FILE})
 
 # configuration script
 file(COPY script/run DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY UIdesign/main.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY UIdesign/test1.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY UIdesign/dialog1.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+
 
 # test
 ## normal
+add_executable(print_c test/print.c)
+add_executable(test_args_c test/test_args.c)
+
 add_executable(test_c test/test.c)
 add_executable(test_cpp test/test.cpp)
 ## mat
