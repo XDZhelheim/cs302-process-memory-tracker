@@ -46,7 +46,7 @@ Now it is finished and released at GitHub: https://github.com/XDZhelheim/cs302-p
 > * [ ] Show these information of each process' child threads
 > * [ ] Feature: search specific process
 > * [x] Beautify GUI
-> * [ ] Integrate Task2 & Task3 (make a GUI of task2 and task3)
+> * [x] Integrate Task2 & Task3 (make a GUI of task2 and task3)
 
 Therefore, we have completed all we wanted to do in our design document, making **Process Monitor** a useful and robust software.
 
@@ -92,6 +92,14 @@ Program finished:
 
 ![](./images/finish_log.jpg)
 
+Program running with GUI: 
+
+![](D:\学习\教材\作业\OS\cs302-process-memory-tracker\images\mem_chech_GUI1.png)
+
+When clicking the buttons, the relevant details would be displayed. Such as when clicking "log": the log dialog would display: 
+
+![](./images/mem_chech_GUIlog.png)
+
 **What we achieved (TODO list in design doc)**:
 
 > Base requirements:
@@ -106,7 +114,7 @@ Program finished:
 > * [x] Generate a `CLI` with more detail information like `pid`.
 > * [x] Generate a `CLI` permitting normal running operation like `I/O`.
 > * [x] Gather information log at the end of output.
-> * [ ] Implement `GUI` for this task, using tools like `Qt`.
+> * [x] Implement `GUI` for this task, using tools like `Qt`.
 
 Therefore, we have completed most we wanted to do in our design document, making **Memory Check** a easy using command line application.
 
@@ -737,6 +745,39 @@ public:
 #### Script
 
 `run` : simplify running command, it is the same for `./run ./test_c` and ``LD_PRELOAD=`pwd`/libmemory_check.so ./test_c``
+
+#### Display information in GUI
+
+1. Use `Qt Designer` to draw a GUI and convert it to `PyQt` format by `pyuic5`
+
+```python
+app = QApplication(sys.argv)
+MainWindow = QMainWindow()
+ui = test1.Ui_MainWindow()
+ui.setupUi(MainWindow)
+MainWindow.show()
+
+......
+```
+
+2. Create a function to enable user choose which program to run
+
+```python
+def openfile():
+    dir1 = QFileDialog.getOpenFileName()
+    global path
+    path = dir1[0]
+```
+
+3. use `QDialog()` to display the popup dialog
+
+```python
+child = QDialog()
+child_ui = dialog1.Ui_Dialog()
+child_ui.setupUi(child)
+
+......
+```
 
 #### Reference
 
