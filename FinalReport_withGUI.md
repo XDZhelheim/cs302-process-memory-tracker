@@ -94,11 +94,11 @@ Program finished:
 
 Program running with GUI: 
 
-![image-20210529104713482](.\images\mem_chech_GUI1.png)
+![](./images/mem_chech_GUI1.png)
 
 When clicking the buttons, the relevant details would be displayed. Such as when clicking "log": the log dialog would display: 
 
-![image-20210529105041746](.\images\mem_chech_GUIlog.png)
+![](./images/mem_chech_GUIlog.png)
 
 **What we achieved (TODO list in design doc)**:
 
