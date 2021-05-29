@@ -94,7 +94,7 @@ Program finished:
 
 Program running with GUI: 
 
-![](.images/mem_chech_GUI1.png)
+![](./images/mem_chech_GUI1.png)
 
 When clicking the buttons, the relevant details would be displayed. Such as when clicking "log": the log dialog would display: 
 
