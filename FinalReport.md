@@ -94,7 +94,7 @@ Program finished:
 
 Program running with GUI: 
 
-![](D:\学习\教材\作业\OS\cs302-process-memory-tracker\images\mem_chech_GUI1.png)
+![](.images/mem_chech_GUI1.png)
 
 When clicking the buttons, the relevant details would be displayed. Such as when clicking "log": the log dialog would display: 
 
