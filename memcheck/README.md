@@ -5,7 +5,7 @@ mkdir build
 cd build
 cmake ..
 make
-./run <exec>
+./run <exec> [args]
 ```
 
-`<exec>` is relative or absolute path of executable mark with `# test` in `CMakeLists.txt` or any `C/C++` programs you want. For example, `./run ./test_c`
+`<exec>` is relative or absolute path to `C/C++` executable.
